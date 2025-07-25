@@ -39,69 +39,83 @@ export class RedisClient {
     }
   }
 
-  async addToGroup(groupId: number, message: any): Promise<number> {
+  private ensureConnected(): void {
     if (!this.client || !this.isConnected) {
-      throw new Error('Redis client not connected');
+      throw new Error('Redis client is not connected');
     }
-
-    const groupKey = `group:${groupId}:messages`;
-    const countKey = `group:${groupId}:count`;
-
-    // Add message to list
-    await this.client.lPush(groupKey, JSON.stringify(message));
-    
-    // Increment count
-    const count = await this.client.incr(countKey);
-    
-    return count;
   }
 
-  async getGroupMessages(groupId: number, count: number): Promise<any[]> {
-    if (!this.client || !this.isConnected) {
-      throw new Error('Redis client not connected');
-    }
+  // Redis List Operations for Batching
+  async rPush(key: string, value: string): Promise<number> {
+    this.ensureConnected();
+    return await this.client!.rPush(key, value);
+  }
 
-    const groupKey = `group:${groupId}:messages`;
+  async lPopCount(key: string, count: number): Promise<string[] | null> {
+    this.ensureConnected();
+    const result = await this.client!.lPopCount(key, count);
+    return result || null;
+  }
+
+  async lLen(key: string): Promise<number> {
+    this.ensureConnected();
+    return await this.client!.lLen(key);
+  }
+
+  async del(key: string): Promise<number> {
+    this.ensureConnected();
+    return await this.client!.del(key);
+  }
+
+  // Legacy methods for backward compatibility
+  async addToGroup(groupId: number, message: any): Promise<number> {
+    this.ensureConnected();
+    const key = `group:${groupId}:messages`;
+    await this.client!.hSet(key, message.id.toString(), JSON.stringify(message));
+    const countKey = `group:${groupId}:count`;
+    return await this.client!.incr(countKey);
+  }
+
+  async getGroupMessages(groupId: number, limit: number): Promise<any[]> {
+    this.ensureConnected();
+    const key = `group:${groupId}:messages`;
+    const messageData = await this.client!.hGetAll(key);
     
-    // Get the last 'count' messages and remove them
-    const messages = await this.client.lRange(groupKey, -count, -1);
-    await this.client.lTrim(groupKey, 0, -count - 1);
+    const messages = Object.values(messageData)
+      .map(data => JSON.parse(data))
+      .sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime())
+      .slice(0, limit);
     
-    return messages.map(msg => JSON.parse(msg)).reverse(); // Reverse to get chronological order
+    // Remove processed messages
+    if (messages.length > 0) {
+      const messageIds = messages.map(msg => msg.id.toString());
+      await this.client!.hDel(key, messageIds);
+    }
+    
+    return messages;
   }
 
   async getGroupCount(groupId: number): Promise<number> {
-    if (!this.client || !this.isConnected) {
-      throw new Error('Redis client not connected');
-    }
-
+    this.ensureConnected();
     const countKey = `group:${groupId}:count`;
-    const count = await this.client.get(countKey);
+    const count = await this.client!.get(countKey);
     return count ? parseInt(count) : 0;
   }
 
   async resetGroupCount(groupId: number): Promise<void> {
-    if (!this.client || !this.isConnected) {
-      throw new Error('Redis client not connected');
-    }
-
+    this.ensureConnected();
     const countKey = `group:${groupId}:count`;
-    await this.client.set(countKey, '0');
+    await this.client!.del(countKey);
   }
 
   async clearGroup(groupId: number): Promise<void> {
-    if (!this.client || !this.isConnected) {
-      throw new Error('Redis client not connected');
-    }
-
-    const groupKey = `group:${groupId}:messages`;
+    this.ensureConnected();
+    const messageKey = `group:${groupId}:messages`;
     const countKey = `group:${groupId}:count`;
-    
-    await this.client.del(groupKey);
-    await this.client.del(countKey);
+    await this.client!.del([messageKey, countKey]);
   }
 
-  isConnectedToRedis(): boolean {
+  getConnectionStatus(): boolean {
     return this.isConnected;
   }
 } 

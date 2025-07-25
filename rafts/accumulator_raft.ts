@@ -2,23 +2,35 @@ import { EventEmitter } from 'events';
 import { RedisClient } from '../redisClient/redisClient';
 import { SimulatedEvent } from '../simulators/eventSimulator';
 
-export interface BatchReadyEvent {
-  groupId: number;
-  messages: SimulatedEvent[];
-  batchSize: number;
-  timestamp: Date;
+export interface MessagePayload {
+  id: number;
+  timestamp: number;
+  fromUserId: number;
+  fromUserName: string | null;
+  content: string;
+  replyToMessageId: number | null;
+}
+
+export interface MessageBatchEvent {
+  channelId: number;
+  messages: MessagePayload[];
+  organization_id: number;
+  campaign_id: string;
 }
 
 export class AccumulatorRaft extends EventEmitter {
   private redisClient: RedisClient;
   private batchSize: number;
   private isRunning = false;
-  private checkInterval: NodeJS.Timeout | null = null;
+  private organizationId: number;
+  private campaignId: string;
 
-  constructor(batchSize: number = 100) {
+  constructor(batchSize: number = 5, organizationId: number = 1, campaignId: string = 'default') {
     super();
     this.redisClient = new RedisClient();
     this.batchSize = batchSize;
+    this.organizationId = organizationId;
+    this.campaignId = campaignId;
   }
 
   async initialize(redisUrl?: string): Promise<void> {
@@ -31,135 +43,143 @@ export class AccumulatorRaft extends EventEmitter {
     }
   }
 
-  async shutdown(): Promise<void> {
-    this.stopBatchChecking();
-    await this.redisClient.disconnect();
-    console.log('✅ Accumulator Raft shutdown complete');
+  private isValidSimulatedEvent(event: any): event is SimulatedEvent {
+    if (typeof event !== 'object' || event === null) {
+      console.warn('Invalid event: must be a non-null object');
+      return false;
+    }
+
+    if (typeof event.id !== 'number') {
+      console.warn('Invalid event: id must be a number');
+      return false;
+    }
+
+    if (typeof event.userId !== 'number') {
+      console.warn('Invalid event: userId must be a number');
+      return false;
+    }
+
+    if (typeof event.content !== 'string') {
+      console.warn('Invalid event: content must be a string');
+      return false;
+    }
+
+    if (typeof event.groupId !== 'number') {
+      console.warn('Invalid event: groupId must be a number');
+      return false;
+    }
+
+    if (!(event.timestamp instanceof Date)) {
+      console.warn('Invalid event: timestamp must be a Date');
+      return false;
+    }
+
+    return true;
   }
 
-  startBatchChecking(intervalMs: number = 1000): void {
+  async processMessage(event: SimulatedEvent): Promise<void> {
+    if (!this.isValidSimulatedEvent(event)) {
+      throw new Error(`Invalid input: event must contain valid SimulatedEvent data: ${JSON.stringify(event)}`);
+    }
+
+    // Convert SimulatedEvent to MessagePayload format
+    const item: MessagePayload = {
+      id: event.id,
+      timestamp: Math.floor(event.timestamp.getTime() / 1000), // Convert to Unix timestamp
+      fromUserId: event.userId,
+      fromUserName: null, // Not available in SimulatedEvent
+      content: event.content,
+      replyToMessageId: event.replyToMessageId || null,
+    };
+
+    // Create batch key following the same pattern as the sandbox raft
+    const batchKey = `${this.organizationId}:${this.campaignId}:${event.groupId}`;
+    const redisKey = `nlp2:batch:telegram:${batchKey}`;
+    
+    // Push message to Redis list
+    const newLength = await this.redisClient.rPush(redisKey, JSON.stringify(item));
+    console.log(`📤 Pushed message into redis list ${redisKey}, new length: ${newLength}`);
+
+        // Check if we have enough messages for a batch
+    if (newLength >= this.batchSize) {
+      const batch: string[] | null = await this.redisClient.lPopCount(redisKey, this.batchSize);
+      console.log(`📥 Popped ${batch?.length} messages from redis list ${redisKey}`);
+
+      if (batch?.length !== this.batchSize) {
+        if (batch) {
+          console.log(`⚠️ Batch size mismatch. Pushing back into redis...`);
+          // Push back the incomplete batch
+          for (const item of batch) {
+            await this.redisClient.rPush(redisKey, item);
+          }
+        }
+      } else {
+        // Parse messages from JSON strings
+        const messages = batch.map((item: string) => JSON.parse(item) as MessagePayload);
+
+        console.log('🚀 Emitting MESSAGE_BATCH event...');
+        
+        const batchEvent: MessageBatchEvent = {
+          channelId: event.groupId,
+          messages,
+          organization_id: this.organizationId,
+          campaign_id: this.campaignId,
+        };
+
+        this.emit('batchReady', batchEvent);
+      }
+    }
+  }
+
+  start(): void {
     if (this.isRunning) {
-      console.log('⚠️ Batch checking already running');
+      console.log('⚠️ Accumulator Raft is already running');
       return;
     }
 
     this.isRunning = true;
-    console.log(`🔄 Starting batch checking every ${intervalMs}ms`);
-
-    this.checkInterval = setInterval(async () => {
-      await this.checkForBatches();
-    }, intervalMs);
+    console.log('▶️ Accumulator Raft started');
+    this.emit('started');
   }
 
-  stopBatchChecking(): void {
-    if (this.checkInterval) {
-      clearInterval(this.checkInterval);
-      this.checkInterval = null;
+  stop(): void {
+    if (!this.isRunning) {
+      console.log('⚠️ Accumulator Raft is not running');
+      return;
     }
+
     this.isRunning = false;
-    console.log('⏹️ Batch checking stopped');
+    console.log('⏹️ Accumulator Raft stopped');
+    this.emit('stopped');
   }
 
-  async accumulateMessage(message: SimulatedEvent): Promise<void> {
-    try {
-      const count = await this.redisClient.addToGroup(message.groupId, message);
-      
-      console.log(`📥 Accumulated message ${message.id} for group ${message.groupId} (count: ${count})`);
-      
-      // Check if we've reached the batch threshold
-      if (count >= this.batchSize) {
-        await this.processBatch(message.groupId);
-      }
-      
-    } catch (error) {
-      console.error('❌ Failed to accumulate message:', error);
-      this.emit('error', error);
-    }
-  }
-
-  private async checkForBatches(): Promise<void> {
-    // For Phase 1, we'll focus on a single group
-    // In production, this would check multiple groups
-    const groupIds = [1]; // Assuming default group ID is 1
+  async getQueueStatus(groupId: number): Promise<{ redisKey: string; queueLength: number }> {
+    const batchKey = `${this.organizationId}:${this.campaignId}:${groupId}`;
+    const redisKey = `nlp2:batch:telegram:${batchKey}`;
+    const queueLength = await this.redisClient.lLen(redisKey);
     
-    for (const groupId of groupIds) {
-      try {
-        const count = await this.redisClient.getGroupCount(groupId);
-        if (count >= this.batchSize) {
-          await this.processBatch(groupId);
-        }
-      } catch (error) {
-        console.error(`❌ Error checking batch for group ${groupId}:`, error);
-      }
-    }
+    return { redisKey, queueLength };
   }
 
-  private async processBatch(groupId: number): Promise<void> {
-    try {
-      console.log(`📦 Processing batch for group ${groupId}`);
-      
-      // Get the batch of messages
-      const messages = await this.redisClient.getGroupMessages(groupId, this.batchSize);
-      
-      if (messages.length === 0) {
-        console.log(`⚠️ No messages found for group ${groupId} batch`);
-        return;
-      }
-
-      // Reset the count for this group
-      await this.redisClient.resetGroupCount(groupId);
-
-      // Create batch event
-      const batchEvent: BatchReadyEvent = {
-        groupId,
-        messages,
-        batchSize: messages.length,
-        timestamp: new Date()
-      };
-
-      console.log(`📤 Emitting batch ready event for group ${groupId} with ${messages.length} messages`);
-      
-      // Emit batch ready event for Concierge Agent
-      this.emit('batchReady', batchEvent);
-
-    } catch (error) {
-      console.error(`❌ Failed to process batch for group ${groupId}:`, error);
-      this.emit('error', error);
-    }
+  async clearQueue(groupId: number): Promise<void> {
+    const batchKey = `${this.organizationId}:${this.campaignId}:${groupId}`;
+    const redisKey = `nlp2:batch:telegram:${batchKey}`;
+    await this.redisClient.del(redisKey);
+    console.log(`🗑️ Cleared queue ${redisKey}`);
   }
 
-  // Manual batch trigger for testing
-  async triggerBatch(groupId: number): Promise<void> {
-    await this.processBatch(groupId);
+  async shutdown(): Promise<void> {
+    this.stop();
+    await this.redisClient.disconnect();
+    console.log('🔌 Accumulator Raft disconnected from Redis');
   }
 
-  // Get current accumulation status
-  async getAccumulationStatus(groupId: number): Promise<any> {
-    try {
-      const count = await this.redisClient.getGroupCount(groupId);
-      return {
-        groupId,
-        currentCount: count,
-        batchSize: this.batchSize,
-        progress: (count / this.batchSize) * 100,
-        readyForBatch: count >= this.batchSize
-      };
-    } catch (error) {
-      console.error(`❌ Failed to get accumulation status for group ${groupId}:`, error);
-      return null;
-    }
-  }
-
-  setBatchSize(newSize: number): void {
-    this.batchSize = Math.max(1, newSize);
-    console.log(`📦 Batch size set to ${this.batchSize}`);
-  }
-
-  getBatchSize(): number {
-    return this.batchSize;
-  }
-
-  isRunningStatus(): boolean {
-    return this.isRunning;
+  getStatus(): { isRunning: boolean; batchSize: number; organizationId: number; campaignId: string } {
+    return {
+      isRunning: this.isRunning,
+      batchSize: this.batchSize,
+      organizationId: this.organizationId,
+      campaignId: this.campaignId,
+    };
   }
 } 
