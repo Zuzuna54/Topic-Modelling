@@ -1,0 +1,34 @@
+{
+  "name": "topic-modelling-solution",
+  "version": "1.0.0",
+  "description": "Social Sentiment Analysis System with Topic Modelling",
+  "main": "index.js",
+  "type": "commonjs",
+  "scripts": {
+    "test:step1": "ts-node scripts/testStep1.ts",
+    "test:simulator": "ts-node scripts/testEventSimulator.ts",
+    "demo:simulator": "ts-node scripts/demoEventSimulator.ts",
+    "run:simulator": "ts-node scripts/runEventSimulator.ts",
+    "test:accumulator": "ts-node scripts/testAccumulatorRaft.ts",
+    "dev": "ts-node index.ts",
+    "build": "tsc",
+    "start": "node dist/index.js"
+  },
+  "keywords": [
+    "typescript",
+    "social-analysis",
+    "topic-modelling",
+    "sentiment-analysis"
+  ],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/redis": "^4.0.11",
+    "ts-node": "^10.9.0",
+    "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "redis": "^4.6.0"
+  }
+}

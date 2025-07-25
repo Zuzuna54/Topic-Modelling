@@ -1,0 +1,206 @@
+📊 SOCIAL GRAPH VISUALIZATION
+==================================================
+
+📈 STATISTICS:
+- Messages: 40
+- Users: 12
+- Topics: 10
+- Conversations: 10
+- Relationships: 16
+- Context Windows: 16
+
+👥 USERS:
+  1. Alice Johnson
+     Messages: 5
+     Style: quick
+     Active Convs: 0
+  2. Bob Smith
+     Messages: 6
+     Style: sporadic
+     Active Convs: 0
+  3. Charlie Brown
+     Messages: 3
+     Style: sporadic
+     Active Convs: 0
+  4. Diana Prince
+     Messages: 2
+     Style: quick
+     Active Convs: 0
+  5. Eve Davis
+     Messages: 2
+     Style: delayed
+     Active Convs: 0
+  6. Frank Miller
+     Messages: 4
+     Style: delayed
+     Active Convs: 0
+  7. Grace Chen
+     Messages: 3
+     Style: quick
+     Active Convs: 0
+  8. Henry Wilson
+     Messages: 3
+     Style: sporadic
+     Active Convs: 0
+  9. Ivy Rodriguez
+     Messages: 3
+     Style: quick
+     Active Convs: 0
+  10. Jack Thompson
+     Messages: 3
+     Style: sporadic
+     Active Convs: 0
+  11. Kate Anderson
+     Messages: 2
+     Style: sporadic
+     Active Convs: 0
+  12. Leo Martinez
+     Messages: 4
+     Style: sporadic
+     Active Convs: 0
+
+🏷️ TOPICS:
+  1. "Technology Discussion"
+     Words: [tech, software, AI, programming]
+     Messages: 4
+     Users: 2
+  2. "Social Events"
+     Words: [party, meetup, event, gathering]
+     Messages: 4
+     Users: 3
+  3. "Work Projects"
+     Words: [project, deadline, meeting, work]
+     Messages: 3
+     Users: 2
+  4. "Personal Life"
+     Words: [family, personal, life, weekend]
+     Messages: 4
+     Users: 3
+  5. "Sports & Fitness"
+     Words: [sports, gym, fitness, exercise, game]
+     Messages: 4
+     Users: 3
+  6. "Food & Cooking"
+     Words: [food, recipe, cooking, restaurant, meal]
+     Messages: 5
+     Users: 3
+  7. "Travel & Adventure"
+     Words: [travel, vacation, trip, adventure, explore]
+     Messages: 4
+     Users: 3
+  8. "Entertainment"
+     Words: [movie, music, book, game, show]
+     Messages: 4
+     Users: 3
+  9. "Learning & Education"
+     Words: [learn, study, course, book, knowledge]
+     Messages: 4
+     Users: 4
+  10. "Health & Wellness"
+     Words: [health, wellness, meditation, sleep, mental]
+     Messages: 4
+     Users: 3
+
+💬 CONVERSATIONS:
+  conv_1: [Alice Johnson, Bob Smith]
+     Messages: 4
+     Topics: 1
+     Active: true
+  conv_2: [Bob Smith, Charlie Brown, Diana Prince]
+     Messages: 4
+     Topics: 2
+     Active: true
+  conv_3: [Alice Johnson, Eve Davis]
+     Messages: 3
+     Topics: 3
+     Active: true
+  conv_4: [Frank Miller, Grace Chen, Henry Wilson]
+     Messages: 4
+     Topics: 5
+     Active: true
+  conv_5: [Ivy Rodriguez, Jack Thompson]
+     Messages: 5
+     Topics: 6
+     Active: true
+  conv_6: [Kate Anderson, Leo Martinez, Alice Johnson]
+     Messages: 4
+     Topics: 7
+     Active: true
+  conv_7: [Charlie Brown, Grace Chen, Ivy Rodriguez]
+     Messages: 4
+     Topics: 8
+     Active: true
+  conv_8: [Diana Prince, Henry Wilson, Jack Thompson, Leo Martinez]
+     Messages: 4
+     Topics: 9
+     Active: true
+  conv_9: [Eve Davis, Frank Miller, Kate Anderson]
+     Messages: 4
+     Topics: 10
+     Active: true
+  conv_10: [Bob Smith, Grace Chen, Leo Martinez]
+     Messages: 4
+     Topics: 4
+     Active: true
+
+📝 RECENT MESSAGES:
+  [12] Frank Miller: "Anyone up for a gym session this morning?"
+       Topic: Sports & Fitness | Sentiment: negative
+  [17] Jack Thompson: "Ooh share the recipe! I love cooking pasta"
+       Topic: Food & Cooking | Sentiment: positive
+  [29] Henry Wilson: "That's great! Which platform are you using?"
+       Topic: Learning & Education | Sentiment: negative
+  [22] Alice Johnson: "Any recommendations for must-visit places?"
+       Topic: Travel & Adventure | Sentiment: negative
+  [21] Leo Martinez: "Amazing! I went there last year. Tokyo is incredib..."
+       Topic: Travel & Adventure | Sentiment: negative
+
+🤝 RELATIONSHIPS:
+  Alice Johnson ↔ Bob Smith
+     Type: friendly | Strength: 0.80
+     Interactions: 31
+  Bob Smith ↔ Charlie Brown
+     Type: professional | Strength: 0.60
+     Interactions: 14
+  Alice Johnson ↔ Eve Davis
+     Type: professional | Strength: 0.70
+     Interactions: 36
+  Charlie Brown ↔ Diana Prince
+     Type: friendly | Strength: 0.75
+     Interactions: 29
+  Frank Miller ↔ Grace Chen
+     Type: friendly | Strength: 0.85
+     Interactions: 50
+  Grace Chen ↔ Henry Wilson
+     Type: professional | Strength: 0.65
+     Interactions: 32
+  Ivy Rodriguez ↔ Jack Thompson
+     Type: friendly | Strength: 0.90
+     Interactions: 33
+  Kate Anderson ↔ Leo Martinez
+     Type: professional | Strength: 0.70
+     Interactions: 41
+  Alice Johnson ↔ Kate Anderson
+     Type: friendly | Strength: 0.80
+     Interactions: 34
+  Diana Prince ↔ Henry Wilson
+     Type: professional | Strength: 0.60
+     Interactions: 28
+  Eve Davis ↔ Frank Miller
+     Type: neutral | Strength: 0.50
+     Interactions: 21
+  Ivy Rodriguez ↔ Grace Chen
+     Type: friendly | Strength: 0.70
+     Interactions: 56
+  Bob Smith ↔ Leo Martinez
+     Type: professional | Strength: 0.65
+     Interactions: 49
+  Jack Thompson ↔ Leo Martinez
+     Type: friendly | Strength: 0.80
+     Interactions: 46
+  Charlie Brown ↔ Grace Chen
+     Type: neutral | Strength: 0.55
+     Interactions: 45
+  Henry Wilson ↔ Jack Thompson
+     Type: professional | Strength: 0.70
+     Interactions: 34
