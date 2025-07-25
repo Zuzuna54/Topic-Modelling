@@ -10,6 +10,67 @@ The system will process Telegram-like messages from `pineapple.json`, accumulate
 - **Single Orchestrator**: Concierge agent maintains in-memory graph and coordinates all other agents
 - **No Configuration Management**: Hard-coded sensible defaults for faster development
 
+## Critical Access Control & Stateless Design
+
+### Access Control Matrix
+| Component | Redis Access | Database Access | State Management |
+|-----------|-------------|----------------|------------------|
+| **Accumulator Raft** | ✅ Full Access | ❌ None | Stateless |
+| **Storage Raft** | ❌ None | ✅ Full Access | Stateless |
+| **Concierge Agent** | ❌ None | ❌ None* | Stateful (In-Memory) |
+| **Individual Agents** | ❌ None | ❌ None | Stateless |
+| **Background Agent** | ❌ None | ✅ Read/Write Trees | Stateless |
+| **Event Simulator** | ❌ None | ❌ None | Stateless |
+
+*Concierge Agent only accesses database during startup to load versioned tree
+
+### Stateless Agent Design Principles
+Following [agentic AI anatomy](https://dr-arsanjani.medium.com/the-anatomy-of-agentic-ai-0ae7d243d13c), all individual agents are designed as pure functions:
+
+#### Individual Agent Signature
+```typescript
+interface StatelessAgent {
+  // Pure function - no internal state
+  process(input: ProcessingInput, context: AgentContext): Promise<ProcessingOutput>;
+}
+
+interface AgentContext {
+  // Read-only context provided by concierge
+  readonly timestamp: Date;
+  readonly batchId: string;
+  readonly config: AgentConfig;
+  // No persistent storage access
+}
+```
+
+#### Benefits of Stateless Design
+- **Horizontal Scalability**: Agents can be deployed across multiple instances
+- **Fault Tolerance**: Agent failures don't affect system state
+- **Testing Simplicity**: Pure functions are easy to test and debug
+- **Resource Efficiency**: No memory leaks or state management overhead
+- **Parallel Processing**: Multiple instances can process different batches simultaneously
+
+### Data Flow Isolation
+```typescript
+// CORRECT: Stateless agent processing
+class SentimentAgent implements StatelessAgent {
+  async process(messages: string[], context: MessageContext[]): Promise<SentimentResult[]> {
+    // Pure processing - no side effects
+    return await this.analyzeSentimentWithContext(messages, context);
+  }
+}
+
+// INCORRECT: Agent accessing external state
+class BadAgent {
+  async process(messages: string[]) {
+    // ❌ Direct database access violates architecture
+    const userData = await db.query('SELECT * FROM users');
+    // ❌ Redis access violates separation of concerns
+    await redis.set('cache_key', data);
+  }
+}
+```
+
 ## High-Level Architecture
 
 ### 1. Data Flow Pipeline
@@ -68,11 +129,29 @@ Pineapple.json → Event Simulator → Accumulator Raft → Batch Dump → Conci
 - **Input**: Array of processed text strings
 - **Output**: Array of embedding vectors
 
-##### Sentiment Analysis Agent
+##### Enhanced Sentiment Analysis Agent
 - **File**: `Agents/sentimentAgent.ts`
-- **Purpose**: Analyze sentiment of messages
-- **Input**: Array of processed text strings
-- **Output**: Array of sentiment classifications
+- **Purpose**: Context-aware sentiment analysis using relationship and conversation context
+- **Input**: Messages with user relationships and conversation context windows
+- **Output**: Contextual sentiment analysis with confidence scores and relationship influence
+- **Features**:
+  - **Base Sentiment Analysis**: Traditional sentiment classification
+  - **Contextual Enhancement**: Adjusts sentiment based on conversation context (last 10 messages between users)
+  - **Relationship Awareness**: Considers user relationship type and history
+  - **Confidence Scoring**: Provides confidence levels for sentiment predictions
+  - **Context Explanation**: Identifies which context messages influenced the final sentiment
+
+##### Relationship Analysis Agent
+- **File**: `Agents/relationshipAgent.ts`
+- **Purpose**: Track and analyze user relationships and communication patterns
+- **Input**: Message interactions between user pairs with historical context
+- **Output**: Updated relationship profiles and interaction patterns
+- **Features**:
+  - **Relationship Strength Calculation**: Based on interaction frequency, sentiment history, response patterns
+  - **Communication Pattern Analysis**: Response times, initiation balance, topic overlap
+  - **Relationship Type Classification**: Friendly, professional, neutral, conflictual detection
+  - **Evolution Tracking**: How relationships change over time
+  - **Context Window Management**: Maintains sliding window of recent interactions for sentiment context
 
 ##### Toxicity Analysis Agent
 - **File**: `Agents/toxicityAgent.ts`
@@ -168,7 +247,8 @@ Pineapple.json → Event Simulator → Accumulator Raft → Batch Dump → Conci
 │   ├── spamAgent.ts                (Spam detection)
 │   ├── emojiAgent.ts               (Emoji processing)
 │   ├── embeddingAgent.ts           (Vector embeddings)
-│   ├── sentimentAgent.ts           (Sentiment analysis)
+│   ├── sentimentAgent.ts           (Enhanced contextual sentiment analysis)
+│   ├── relationshipAgent.ts        (User relationship and context tracking)
 │   ├── toxicityAgent.ts            (Toxicity detection)
 │   ├── llmAgent.ts                 (LLM integration)
 │   └── topicRefinementAgent.ts     (Background optimization)
@@ -186,7 +266,6 @@ Pineapple.json → Event Simulator → Accumulator Raft → Batch Dump → Conci
 ├── scripts/
 │   ├── setup-db.sql                (Database initialization)
 │   ├── run-simulation.ts           (End-to-end test)
-│   └── docker-compose.yml          (Local environment)
 └── types/
     └── index.ts                    (TypeScript definitions)
 ```
@@ -231,16 +310,96 @@ Pineapple.json → Event Simulator → Accumulator Raft → Batch Dump → Conci
 3. **Spam Detection**: Filter messages through spam detection agent
 4. **Content Processing**: Unemojify remaining valid messages
 
-### Parallel Agent Orchestration
+### Enhanced Parallel Agent Orchestration with Context
 ```typescript
 // Topic determination handled internally using in-memory tree (NO database access)
 const topics = this.determineTopicsFromMemory(channelId, messages); // Fast in-memory lookup
 
-const [embeddings, sentimentResults, toxicityResults] = await Promise.all([
+// Get relationship and context data for each message
+const messageContexts = await this.getMessageContexts(messages);
+
+const [embeddings, contextualSentiment, toxicityResults, relationshipUpdates] = await Promise.all([
   context.agents.embedding.generate(processedTexts),
-  context.agents.sentiment.analyze(processedTexts),
-  context.agents.toxicity.analyze(processedTexts)
+  context.agents.sentiment.analyzeWithContext(processedTexts, messageContexts),
+  context.agents.toxicity.analyze(processedTexts),
+  context.agents.relationship.updateRelationships(messageContexts)
 ]);
+```
+
+### Enhanced Agent Interfaces
+
+#### Contextual Sentiment Analysis Agent Interface
+```typescript
+interface ContextualSentimentAgent {
+  async analyzeWithContext(
+    messages: string[],
+    contexts: MessageContext[]
+  ): Promise<ContextualSentimentResult[]>;
+}
+
+interface MessageContext {
+  messageId: number;
+  senderId: number;
+  recipientIds: number[];
+  userRelationship?: UserRelationship;
+  conversationContext: ConversationContextWindow;
+  topicContext: number[];
+}
+
+interface ContextualSentimentResult {
+  messageId: number;
+  baseSentiment: 'positive' | 'negative' | 'neutral';
+  contextualSentiment: 'positive' | 'negative' | 'neutral';
+  confidenceScore: number; // 0-1
+  relationshipInfluence: 'strengthened' | 'weakened' | 'neutral';
+  contextInfluence: {
+    influencingMessageIds: number[];
+    contextShift: string; // How context changed sentiment
+    emotionalTrajectory: string;
+  };
+}
+```
+
+#### Relationship Analysis Agent Interface
+```typescript
+interface RelationshipAnalysisAgent {
+  async updateRelationships(
+    interactions: UserInteraction[]
+  ): Promise<RelationshipUpdate[]>;
+  
+  async calculateRelationshipStrength(
+    userA: number,
+    userB: number,
+    interactionHistory: UserInteraction[]
+  ): Promise<number>;
+  
+  async detectRelationshipType(
+    relationship: UserRelationship
+  ): Promise<'friendly' | 'professional' | 'neutral' | 'conflictual'>;
+}
+
+interface UserInteraction {
+  messageId: number;
+  senderId: number;
+  recipientId: number;
+  timestamp: Date;
+  content: string;
+  sentiment: string;
+  topicId?: number;
+  replyToId?: number;
+}
+
+interface RelationshipUpdate {
+  userPair: string;
+  strengthChange: number;
+  typeChange?: string;
+  newPatterns: {
+    responseTimeAvg: number;
+    initiationBalance: number;
+    sentimentTrend: number[];
+  };
+  triggerEvents: string[];
+}
 ```
 
 ### Streaming Output
@@ -311,6 +470,14 @@ interface Message {
   toxicity?: number;
   replyToMessageId?: number;  // For conversation threading
   conversationId?: string;    // Groups related messages
+  // NEW: Context tracking
+  contextualSentiment?: {
+    baseSentiment: string;
+    contextualSentiment: string;
+    confidenceScore: number;
+    relationshipInfluence: string;
+    contextMessages: number[];  // IDs of messages that influenced sentiment
+  };
 }
 
 interface User {
@@ -320,6 +487,14 @@ interface User {
   activeConversations: Set<string>;
   topicParticipation: Map<number, number>; // topicId -> message count
   lastActivity: Date;
+  // NEW: Relationship and context tracking
+  recentInteractions: Map<number, number[]>; // otherUserId -> recent message IDs (sliding window)
+  communicationStyle: {
+    averageMessageLength: number;
+    emojiUsage: number;
+    responsePattern: 'quick' | 'delayed' | 'sporadic';
+    topTopics: number[];
+  };
 }
 
 interface Topic {
@@ -343,6 +518,72 @@ interface Conversation {
   startTime: Date;
   lastActivity: Date;
   isActive: boolean;
+  // NEW: Conversation flow tracking
+  messageFlow: {
+    messageId: number;
+    userId: number;
+    timestamp: Date;
+    replyToId?: number;
+    sentimentShift?: number; // How sentiment changed from previous message
+  }[];
+}
+
+// NEW: User Relationship Tracking
+interface UserRelationship {
+  userA: number;
+  userB: number;
+  relationshipStrength: number;        // 0-1 scale
+  relationshipType: 'friendly' | 'professional' | 'neutral' | 'conflictual' | 'unknown';
+  interactionCount: number;
+  sentimentHistory: number[];          // Rolling sentiment scores
+  communicationPatterns: {
+    averageResponseTime: number;       // Minutes
+    initiationBalance: number;         // Who starts conversations more (-1 to 1)
+    topicOverlap: Set<number>;        // Shared topics of interest
+    conversationFrequency: number;    // Conversations per week
+  };
+  lastInteraction: Date;
+  relationshipEvolution: {             // How relationship changed over time
+    timestamp: Date;
+    strength: number;
+    type: string;
+    triggerEvent?: string;            // What caused the change
+  }[];
+  // NEW: Conversation context tracking
+  conversationContext: {
+    recentMessages: {
+      messageId: number;
+      content: string;
+      timestamp: Date;
+      senderId: number;
+      sentiment: string;
+    }[];
+    conversationTone: 'positive' | 'negative' | 'neutral' | 'mixed';
+    topicFlow: number[];              // Recent topics discussed
+    lastContextUpdate: Date;
+  };
+}
+
+// NEW: Conversation Context Window
+interface ConversationContextWindow {
+  userPair: string;                   // "userA_userB" (sorted)
+  messages: {
+    id: number;
+    content: string;
+    senderId: number;
+    timestamp: Date;
+    sentiment?: string;
+    topicId?: number;
+    emotionalTone?: string;
+  }[];
+  windowSize: number;                 // Default: 10 messages
+  contextSummary: {
+    dominantTone: string;
+    topicProgression: number[];
+    emotionalTrajectory: string[];   // How emotions changed over context
+    keyPhrases: string[];
+  };
+  lastUpdated: Date;
 }
 
 interface InMemoryGraph {
@@ -354,12 +595,23 @@ interface InMemoryGraph {
   topics: Map<number, Topic>;
   conversations: Map<string, Conversation>;
   
+  // NEW: User relationship and context tracking
+  userRelationships: Map<string, UserRelationship>; // "userA_userB" -> relationship
+  relationshipsByUser: Map<number, Set<string>>;    // userId -> relationship keys
+  conversationContexts: Map<string, ConversationContextWindow>; // "userA_userB" -> context window
+  
   // Fast lookup indexes
   topicsByEmbedding: Map<string, number[]>;      // For semantic similarity
   messagesByUser: Map<number, number[]>;         // userId -> messageIds
   messagesByTopic: Map<number, number[]>;        // topicId -> messageIds
   messagesByConversation: Map<string, number[]>; // conversationId -> messageIds
   activeConversations: Map<number, string[]>;    // userId -> active conversation IDs
+  
+  // NEW: Context and relationship indexes
+  relationshipTypes: Map<string, Set<string>>;      // type -> relationship keys
+  strongRelationships: Set<string>;                 // High-strength relationships
+  activeContextWindows: Map<number, Set<string>>;   // userId -> active context window keys
+  recentInteractionPairs: Set<string>;              // Recently active user pairs
   
   // Conversation threading
   conversationThreads: Map<number, number[]>;    // messageId -> reply chain
@@ -371,25 +623,46 @@ interface InMemoryGraph {
     totalUsers: number;
     totalTopics: number;
     activeConversations: number;
+    trackedRelationships: number;
+    activeContextWindows: number;
     lastProcessedTime: Date;
   };
 }
 ```
 
-### Message Processing with Graph Updates (Internal to Concierge Agent)
+### Enhanced Message Processing with Relationship & Context Tracking (Internal to Concierge Agent)
 1. **Receive Message Batch**: Get batch from accumulator raft
 2. **Pre-processing**: Validate input, filter noise, detect spam, unemojify
 3. **User Management**: Update user records and activity tracking
-4. **Conversation Detection**: Identify conversation threads using reply chains, temporal proximity, and semantic embedding similarity
-5. **Topic Determination**: Compare message embeddings with in-memory topics (>0.5 similarity)
-6. **Topic Assignment**: Assign to existing topic or create new canonical topic using LLM
-7. **Parallel Processing**: Generate embeddings, sentiment, toxicity via individual agents
-8. **Graph Updates**: Update all relationships and indexes in memory:
-   - Add messages to topics, users, conversations
-   - Update conversation threading and participant tracking
-   - Refresh similarity indexes and statistics
-   - Detect and link related topics
-9. **Conversation Threading**: Link messages through reply chains and temporal proximity
+4. **Relationship Context Retrieval**: For each message, get user relationships and conversation context windows
+5. **Conversation Detection**: Identify conversation threads using reply chains, temporal proximity, and semantic embedding similarity
+6. **Topic Determination**: Compare message embeddings with in-memory topics (>0.7 similarity)
+7. **Topic Assignment**: Assign to existing topic or create new canonical topic using LLM
+8. **Enhanced Parallel Processing**: Process with context awareness
+   ```typescript
+   const [embeddings, contextualSentiment, toxicityResults, relationshipUpdates] = await Promise.all([
+     context.agents.embedding.generate(processedTexts),
+     context.agents.sentiment.analyzeWithContext(processedTexts, userRelationships, conversationContexts),
+     context.agents.toxicity.analyze(processedTexts),
+     context.agents.relationship.updateRelationships(messageInteractions)
+   ]);
+   ```
+9. **Conversation Context Updates**: Update conversation context windows for user pairs
+   - Add new messages to relevant context windows (sliding window of 10 messages)
+   - Update conversation tone and emotional trajectory
+   - Refresh topic flow and key phrases
+10. **Relationship Graph Updates**: Update user relationships based on new interactions
+    - Calculate relationship strength changes
+    - Update communication patterns (response times, initiation balance)
+    - Track sentiment history between user pairs
+    - Detect relationship type changes (friendly → conflictual, etc.)
+11. **Graph Updates**: Update all relationships and indexes in memory:
+    - Add messages to topics, users, conversations
+    - Update conversation threading and participant tracking
+    - Refresh similarity indexes and statistics
+    - Update relationship and context indexes
+    - Detect and link related topics
+12. **Conversation Threading**: Link messages through reply chains, temporal proximity, and relationship context
 
 ## Conversation Detection and Threading
 
@@ -736,3 +1009,74 @@ COMMIT;
 
 ### Q: Can we query historical data?
 **A:** Yes! Every version is preserved, allowing historical analysis of topic evolution, user behavior changes, and conversation patterns over time.
+
+## System Architecture & Data Flow Diagrams
+
+### Architectural Diagrams
+- **System Architecture**: `system-architecture.mmd` - Complete component relationships and access control
+- **Data Flow**: `data-flow.mmd` - End-to-end message processing pipeline with timing and decision points
+
+### Agentic AI Architecture Alignment
+
+Following [agentic AI maturity models](https://dr-arsanjani.medium.com/scaling-agentic-ai-86a541f10aad) and [agent anatomy principles](https://dr-arsanjani.medium.com/the-anatomy-of-agentic-ai-0ae7d243d13c), our system implements:
+
+#### **Multi-Agent System (MAS) with Meta-Agent Coordination**
+- **Concierge Agent**: Acts as meta-agent orchestrating all individual agents
+- **Individual Processing Agents**: Specialized, stateless agents for specific tasks
+- **Shared Memory**: In-memory social graph serves as coordination mechanism
+- **Dynamic Task Assignment**: Concierge dynamically routes work to appropriate agents
+
+#### **Agent Anatomy Implementation**
+Each agent follows the core agent anatomy:
+```typescript
+interface AgentAnatomy {
+  // Goals: Defined by agent specialization (sentiment, relationships, etc.)
+  goals: string[];
+  
+  // Sense: Receive input from concierge agent
+  sense(input: ProcessingInput): SensoryData;
+  
+  // Reason: Process using LLM/ML models  
+  reason(sensoryData: SensoryData, context: AgentContext): ReasoningResult;
+  
+  // Plan: Determine processing strategy
+  plan(reasoningResult: ReasoningResult): ActionPlan;
+  
+  // Act: Execute processing and return results
+  act(plan: ActionPlan): ProcessingOutput;
+  
+  // Memory: Stateless - no persistent memory (except concierge)
+  memory: null; // Stateless design
+}
+```
+
+#### **Scalability & Compliance Features**
+- **Policy Adherence Guardrails**: Access control matrix prevents unauthorized data access
+- **Feedback Loops**: Background agent provides continuous optimization
+- **Real-time Adaptability**: Dynamic graph updates and version management
+- **Organizational Goal Alignment**: Relationship intelligence serves business objectives
+
+### Architectural Benefits
+
+#### **From Research**: [Advanced Context Engineering](https://huggingface.co/blog/jsemrau/context-engineering-for-agents)
+- ✅ **Hierarchical Memory**: Short-term (context windows), mid-term (relationships), long-term (versioned trees)
+- ✅ **Context Persistence**: Conversation context windows with configurable retention
+- ✅ **Relevance-aware Processing**: Relationship and topic-based context filtering
+- ✅ **Explainable Decisions**: Context influence tracking in sentiment analysis
+
+#### **From Research**: [LLM Memory Management](https://www.strongly.ai/blog/mastering-llm-memory-a-comprehensive-guide.html)
+- ✅ **Sliding Window Memory**: 10-message context windows per user pair
+- ✅ **Retrieval-based Methods**: Semantic similarity for topic matching
+- ✅ **Dynamic Memory Allocation**: Adaptive context based on relationship strength
+- ✅ **Multi-modal Integration**: Text, embeddings, and relationship data
+
+### Innovation Beyond Current Practice
+
+Our system advances beyond typical implementations by:
+
+1. **Relationship-Aware Context**: Context windows tied to user relationships, not just temporal proximity
+2. **Multi-Signal Conversation Detection**: Combining semantic, temporal, and relationship signals
+3. **Dynamic Relationship Intelligence**: Real-time relationship type classification and evolution tracking
+4. **Versioned Social Graph Snapshots**: Complete graph state management with optimization cycles
+
+This architecture represents a **Level 5+ Agentic AI System** in the maturity model - featuring advanced multi-agent coordination with meta-agents, complex feedback mechanisms, and sophisticated policy adherence frameworks.

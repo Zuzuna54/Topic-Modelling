@@ -1,0 +1,127 @@
+flowchart TD
+    %% Data Source & Event Generation
+    Start([🎬 System Start]) --> LoadTree{🔄 Load Latest<br/>Semantic Tree?}
+    LoadTree -->|First Run| EmptyGraph[🆕 Create Empty<br/>In-Memory Graph]
+    LoadTree -->|Has Previous Data| LoadGraph[📊 Load Tree v.N<br/>from PostgreSQL]
+    
+    EmptyGraph --> Ready[✅ System Ready<br/>Concierge Agent Active]
+    LoadGraph --> Ready
+    
+    %% Event Simulation Flow
+    Ready --> SimStart[🎪 Event Simulator<br/>Parse pineapple.json]
+    SimStart --> EventStream[📤 Stream Message Events<br/>Real-time Simulation]
+    
+    %% Accumulation Phase
+    EventStream --> AccumCheck{🌊 Accumulator Raft<br/>Check Threshold}
+    AccumCheck -->|Count < 100| RedisStore["🔴 Store in Redis<br/>group:X:messages<br/>group:X:count"]
+    AccumCheck -->|Count >= 100| BatchReady[📦 Batch Ready<br/>100 Messages]
+    
+    RedisStore --> WaitMore["⏳ Wait for More<br/>Messages"]
+    WaitMore --> EventStream
+    
+    %% Concierge Processing Pipeline
+    BatchReady --> Validate["🎭 Concierge Agent<br/>🔍 Input Validation"]
+    Validate --> NoiseFilter["🧹 Noise Filtering<br/>Empty/Commands/Links"]
+    NoiseFilter --> ContextRetrieval["🤝 Relationship Context<br/>Retrieval for User Pairs"]
+    
+    %% Sequential Processing Phase
+    ContextRetrieval --> SpamDetect["🚫 Spam Detection<br/>Sequential Processing"]
+    SpamDetect -->|Clean Messages| EmojiProcess["😀 Emoji Processing<br/>Sequential Processing"]
+    EmojiProcess --> TopicMatch["🏷️ Topic Matching<br/>In-Memory (70% threshold)"]
+    
+    %% Parallel Processing Phase
+    TopicMatch --> ParallelStart["🔄 Start Parallel<br/>Processing"]
+    
+    ParallelStart --> EmbedGen["📊 Embedding Generation<br/>Semantic Vectors"]
+    ParallelStart --> SentAnalysis["😊 Contextual Sentiment<br/>With Relationship Context"]
+    ParallelStart --> ToxicCheck["☠️ Toxicity Analysis<br/>Harm Detection"]
+    ParallelStart --> RelUpdate["🤝 Relationship Updates<br/>User Dynamics"]
+    
+    %% Topic Assignment
+    TopicMatch -->|No Match| TopicCreate["🧠 LLM Agent<br/>Create New Topic"]
+    TopicMatch -->|Match Found| TopicAssign["🏷️ Assign to<br/>Existing Topic"]
+    TopicCreate --> TopicAssign
+    
+    %% Convergence & Graph Updates
+    EmbedGen --> Converge["🎯 Converge Results"]
+    SentAnalysis --> Converge
+    ToxicCheck --> Converge
+    RelUpdate --> Converge
+    TopicAssign --> Converge
+    
+    %% In-Memory Graph Updates
+    Converge --> GraphUpdate["📊 Update In-Memory Graph<br/>Messages, Users, Topics,<br/>Relationships, Context Windows"]
+    
+    GraphUpdate --> ConvUpdate["💬 Conversation Context<br/>Update Windows (10 msgs)"]
+    ConvUpdate --> RelGraphUpdate["🤝 Relationship Graph<br/>Strength, Type, Patterns"]
+    RelGraphUpdate --> IndexUpdate["🔍 Update Search Indexes<br/>Fast Lookups"]
+    
+    %% Storage Decision
+    IndexUpdate --> StorageDecision["💾 Storage Needed?"]
+    StorageDecision -->|Batch Complete| StorageRaft["💾 Storage Raft<br/>Persist to PostgreSQL"]
+    StorageDecision -->|Continue Processing| NextBatch["📦 Ready for Next Batch"]
+    
+    StorageRaft --> DBStore["🐘 PostgreSQL<br/>Store Messages/Relationships"]
+    DBStore --> NextBatch
+    
+    %% Background Optimization Cycle
+    NextBatch --> TimeCheck["⏰ Background Cycle<br/>Time? (1 hour)"]
+    TimeCheck -->|Not Yet| WaitEvents["⏳ Wait for Events"]
+    TimeCheck -->|Time for Optimization| BGExtract["🎯 Background Agent<br/>Extract In-Memory Graph"]
+    
+    WaitEvents --> EventStream
+    
+    %% Background Processing
+    BGExtract --> ChatGPTFilter["🤖 ChatGPT Filtering<br/>Topic Optimization"]
+    ChatGPTFilter --> GraphOptimize["🔧 Graph Optimization<br/>Merge Topics, Clean Data"]
+    GraphOptimize --> VersionCreate["📝 Create New Version<br/>Tree Blob + Metadata"]
+    VersionCreate --> VersionStore["🐘 Store Optimized Tree<br/>version_id + 1"]
+    VersionStore --> VersionSignal["🔔 Signal Concierge<br/>New Version Available"]
+    
+    %% Version Reload
+    VersionSignal --> ReloadDecision["🔄 Reload Decision<br/>Concierge Agent"]
+    ReloadDecision -->|Significant Improvement| ReloadGraph["⚡ Reload Optimized<br/>Tree from DB"]
+    ReloadDecision -->|Minor Changes| ContinueProcessing["➡️ Continue with<br/>Current Version"]
+    
+    ReloadGraph --> Ready
+    ContinueProcessing --> NextBatch
+    
+    %% Relationship & Context Specific Flows
+    subgraph RelationshipFlow ["🤝 Relationship Processing Details"]
+        direction LR
+        R1["📊 Calculate Interaction<br/>Frequency"] --> R2["📈 Update Relationship<br/>Strength (0-1)"]
+        R2 --> R3["🏷️ Classify Type<br/>friendly/professional/conflictual"]
+        R3 --> R4["📝 Update Communication<br/>Patterns & History"]
+        R4 --> R5["💬 Update Context Window<br/>Last 10 interactions"]
+    end
+    
+    subgraph ContextFlow ["💬 Context Window Management"]
+        direction LR
+        C1["📥 Add New Message<br/>to Window"] --> C2["📊 Update Emotional<br/>Trajectory"]
+        C2 --> C3["🏷️ Refresh Topic<br/>Flow"] --> C4["🔄 Slide Window<br/>if > 10 messages"]
+    end
+    
+    %% Performance Metrics
+    subgraph Metrics ["📊 Performance Targets"]
+        direction TB
+        M1[⚡ Embedding: 50-100ms]
+        M2[😊 Sentiment: 20-50ms]
+        M3[🤝 Relationships: 10-30ms]
+        M4[🔍 Topic Match: <10ms]
+        M5[📦 Batch Total: <500ms]
+    end
+    
+    %% Styling
+    classDef startStyle fill:#c8e6c9,stroke:#388e3c,stroke-width:3px,color:#000
+    classDef processStyle fill:#e1f5fe,stroke:#1976d2,stroke-width:2px,color:#000
+    classDef decisionStyle fill:#fff3e0,stroke:#f57c00,stroke-width:2px,color:#000
+    classDef agentStyle fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px,color:#000
+    classDef storageStyle fill:#e8f5e8,stroke:#388e3c,stroke-width:2px,color:#000
+    classDef contextStyle fill:#fce4ec,stroke:#c2185b,stroke-width:2px,color:#000
+    
+    class Start,Ready startStyle
+    class SimStart,EventStream,BatchReady,Validate,NoiseFilter,ContextRetrieval,Converge,GraphUpdate,ConvUpdate,RelGraphUpdate,IndexUpdate processStyle
+    class AccumCheck,StorageDecision,TimeCheck,ReloadDecision decisionStyle
+    class SpamDetect,EmojiProcess,EmbedGen,SentAnalysis,ToxicCheck,RelUpdate,TopicCreate,TopicAssign agentStyle
+    class RedisStore,StorageRaft,DBStore,VersionStore,LoadGraph,EmptyGraph storageStyle
+    class BGExtract,ChatGPTFilter,GraphOptimize,VersionCreate,VersionSignal,ReloadGraph contextStyle
