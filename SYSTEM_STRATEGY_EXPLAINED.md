@@ -200,7 +200,7 @@ The magic of our system lies in its **rigorous access control architecture**. On
 **Data Access Controllers**:
 - **Accumulator Raft**: Exclusive Redis access for message batching
 - **Storage Raft**: Exclusive database access for persistence
-- **Background Agent**: Database access only for tree optimization
+- **Background Agent**: Receives tree data via events, emits optimized trees back via events (no direct database access)
 
 This **separation of concerns** makes our system incredibly fast, secure, and scalable - each component has a single responsibility and clear access boundaries.
 

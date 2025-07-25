@@ -12,17 +12,17 @@ The system will process Telegram-like messages from `pineapple.json`, accumulate
 
 ## Critical Access Control & Stateless Design
 
-### Access Control Matrix
-| Component | Redis Access | Database Access | State Management |
-|-----------|-------------|----------------|------------------|
-| **Accumulator Raft** | ✅ Full Access | ❌ None | Stateless |
-| **Storage Raft** | ❌ None | ✅ Full Access | Stateless |
-| **Concierge Agent** | ❌ None | ❌ None* | Stateful (In-Memory) |
-| **Individual Agents** | ❌ None | ❌ None | Stateless |
-| **Background Agent** | ❌ None | ✅ Read/Write Trees | Stateless |
-| **Event Simulator** | ❌ None | ❌ None | Stateless |
+### Enhanced Access Control Matrix with Event-Driven Version Control
+| Component | Redis Access | Database Access | State Management | Version Control Role |
+|-----------|-------------|----------------|------------------|---------------------|
+| **Accumulator Raft** | ✅ Full Access | ❌ None | Stateless | None |
+| **Storage Raft** | ❌ None | ✅ Full Access | Stateless | **Receives & Stores Both Version Types via Events** |
+| **Concierge Agent** | ❌ None | ❌ None* | Stateful (In-Memory) | **Emits Tree Events (Unoptimized → Storage, Tree Payload → Background)** |
+| **Individual Agents** | ❌ None | ❌ None | Stateless | None |
+| **Background Agent** | ❌ None | ❌ None | Stateless | **Receives Tree via Events, Emits Optimized Tree Events** |
+| **Event Simulator** | ❌ None | ❌ None | Stateless | None |
 
-*Concierge Agent only accesses database during startup to load versioned tree
+*Concierge Agent only accesses database during startup to load latest optimized tree
 
 ### Stateless Agent Design Principles
 Following [agentic AI anatomy](https://dr-arsanjani.medium.com/the-anatomy-of-agentic-ai-0ae7d243d13c), all individual agents are designed as pure functions:

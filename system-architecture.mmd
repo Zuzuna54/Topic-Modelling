@@ -33,7 +33,7 @@ graph TB
     
     %% Background Processing
     subgraph BackgroundLayer ["🔄 Background Processing"]
-        BG["🎯 Background Agent<br/>📝 Stateless<br/>❌ Redis Access<br/>✅ DB Tree Access<br/>🤖 ChatGPT Optimization"]
+        BG["🎯 Background Agent<br/>📝 Stateless<br/>❌ Redis Access<br/>❌ DB Access<br/>📤 Receives Tree via Events<br/>🤖 ChatGPT Optimization"]
     end
     
     %% Simulation Layer
@@ -65,13 +65,14 @@ graph TB
     TA -->|"☠️ Toxicity Scores"| CA
     LA -->|"🏷️ Topic Assignments"| CA
     
-    %% Storage Flow
-    CA -->|"💾 Processed Messages"| SR
-    SR <-->|"📊 Persist Data"| DB
+    %% Enhanced Event-Driven Storage Flow
+    CA -->|"💾 Regular Messages"| SR
+    CA -->|"📤 Storage Event + Tree Payload"| SR
+    SR <-->|"📊 Persist Data & Trees"| DB
     
-    %% Background Optimization
-    CA -.->|"📊 Extract Graph (Periodic)"| BG
-    BG <-->|"🔄 Optimized Trees"| DB
+    %% Event-Driven Background Optimization
+    CA -->|"📤 Background Event + Tree Payload"| BG
+    BG -->|"📤 Optimized Storage Event + Tree"| SR
     BG -.->|"🔔 Version Update Signal"| CA
     CA <-->|"⚡ Load Latest Tree (Startup)"| DB
     

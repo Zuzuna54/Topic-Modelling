@@ -64,18 +64,29 @@ flowchart TD
     StorageRaft --> DBStore["🐘 PostgreSQL<br/>Store Messages/Relationships"]
     DBStore --> NextBatch
     
-    %% Background Optimization Cycle
-    NextBatch --> TimeCheck["⏰ Background Cycle<br/>Time? (1 hour)"]
-    TimeCheck -->|Not Yet| WaitEvents["⏳ Wait for Events"]
-    TimeCheck -->|Time for Optimization| BGExtract["🎯 Background Agent<br/>Extract In-Memory Graph"]
+    %% Enhanced Event-Driven Version Control
+    NextBatch --> VersionCheck["📊 Version Control<br/>Time for Storage? (1000 msgs)"]
+    VersionCheck -->|Not Yet| WaitEvents["⏳ Wait for Events"]
+    VersionCheck -->|Yes| EmitStorageEvent["📤 Concierge Agent<br/>Emit Storage Event<br/>+ Tree Payload"]
     
+    EmitStorageEvent --> StorageEvent["🎯 Storage Raft<br/>Receive Tree Payload"]
+    StorageEvent --> UnoptimizedStore["🐘 PostgreSQL<br/>Store Unoptimized v.N+1<br/>version_type: 'unoptimized'"]
+    
+    %% Event-Driven Background Optimization
+    EmitStorageEvent --> OptimizationCheck["🔄 Optimization Check<br/>Every Hour?"]
+    OptimizationCheck -->|Not Time| WaitEvents
+    OptimizationCheck -->|Time for Optimization| EmitBGEvent["📤 Concierge Agent<br/>Emit Background Event<br/>+ Tree Payload"]
+    
+    EmitBGEvent --> BGReceive["🎯 Background Agent<br/>Receive Tree Payload"]
     WaitEvents --> EventStream
     
-    %% Background Processing
-    BGExtract --> ChatGPTFilter["🤖 ChatGPT Filtering<br/>Topic Optimization"]
+    %% Background Processing with Received Tree
+    BGReceive --> ChatGPTFilter["🤖 ChatGPT Filtering<br/>Topic Optimization<br/>Using Received Tree"]
     ChatGPTFilter --> GraphOptimize["🔧 Graph Optimization<br/>Merge Topics, Clean Data"]
     GraphOptimize --> VersionCreate["📝 Create New Version<br/>Tree Blob + Metadata"]
-    VersionCreate --> VersionStore["🐘 Store Optimized Tree<br/>version_id + 1"]
+    VersionCreate --> EmitOptimizedEvent["📤 Background Agent<br/>Emit Storage Event<br/>+ Optimized Tree Payload"]
+    EmitOptimizedEvent --> OptStorageRaft["🎯 Storage Raft<br/>Receive Optimized Tree"]
+    OptStorageRaft --> VersionStore["🐘 Store Optimized Tree<br/>version_type: 'optimized'<br/>version_id + 1"]
     VersionStore --> VersionSignal["🔔 Signal Concierge<br/>New Version Available"]
     
     %% Version Reload

@@ -30,8 +30,9 @@ Pineapple.json → Event Simulator → Accumulator Raft → Concierge Agent (Met
                                         ↓                         ↓
                                  Message Batching         Context-Aware Processing + Social Analysis
                                         ↓                         ↓
-                                  Storage Raft          Background Optimization + Versioned Database
-                                 (DB Access Only)
+                              Event-Driven Storage      Event-Driven Background Optimization
+                           (Tree Payload → Storage Raft)  (Tree Payload → Background Agent → Storage Raft)
+                                 (DB Access Only)                    Versioned Database
 ```
 
 ### Core Agentic AI Components
@@ -286,7 +287,7 @@ Each agent can be configured independently:
 - **Enhanced Sentiment Agent**: Model selection, confidence thresholds, relationship influence weights, context window settings
 - **Relationship Agent**: Interaction tracking sensitivity, relationship evolution rates, conflict detection thresholds
 - **Spam Agent**: Sensitivity levels and keyword filters
-- **Toxicity Agent**: Safety thresholds and content policies  
+- **Toxicity Agent**: Safety thresholds and content policies
 - **Embedding Agent**: Model selection and dimension settings
 - **LLM Agent**: Topic classification models, similarity thresholds, creativity parameters
 
