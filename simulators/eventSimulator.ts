@@ -41,9 +41,9 @@ export class EventSimulator extends EventEmitter {
     try {
       const rawData = fs.readFileSync(filePath, 'utf-8');
       this.data = JSON.parse(rawData);
-      console.log(`✅ Loaded ${this.data?.messages.length || 0} messages from ${filePath}`);
+      console.log(`Loaded ${this.data?.messages.length || 0} messages from ${filePath}`);
     } catch (error) {
-      console.error('❌ Failed to load pineapple data:', error);
+      console.error('Failed to load pineapple data:', error);
       throw error;
     }
   }
@@ -54,7 +54,7 @@ export class EventSimulator extends EventEmitter {
     }
 
     if (this.isSimulating) {
-      console.log('⚠️ Simulation already running');
+      console.log('Simulation already running');
       return;
     }
 
@@ -62,7 +62,7 @@ export class EventSimulator extends EventEmitter {
     this.isSimulating = true;
     this.currentIndex = 0;
 
-    console.log(`🎬 Starting simulation with ${this.data.messages.length} messages at ${speed}ms intervals`);
+    console.log(`Starting simulation with ${this.data.messages.length} messages at ${speed}ms intervals`);
     this.emit('simulationStarted', {
       totalMessages: this.data.messages.length,
       groupId: this.data.id,
@@ -74,7 +74,7 @@ export class EventSimulator extends EventEmitter {
 
   stopSimulation(): void {
     this.isSimulating = false;
-    console.log('⏹️ Simulation stopped');
+    console.log('Simulation stopped');
     this.emit('simulationStopped', {
       processedMessages: this.currentIndex,
       totalMessages: this.data?.messages.length || 0
@@ -83,7 +83,7 @@ export class EventSimulator extends EventEmitter {
 
   pauseSimulation(): void {
     this.isSimulating = false;
-    console.log('⏸️ Simulation paused');
+    console.log('Simulation paused');
     this.emit('simulationPaused', {
       processedMessages: this.currentIndex,
       remainingMessages: (this.data?.messages.length || 0) - this.currentIndex
@@ -92,12 +92,12 @@ export class EventSimulator extends EventEmitter {
 
   resumeSimulation(): void {
     if (!this.data || this.currentIndex >= this.data.messages.length) {
-      console.log('⚠️ Cannot resume: no data or simulation complete');
+      console.log('Cannot resume: no data or simulation complete');
       return;
     }
 
     this.isSimulating = true;
-    console.log('▶️ Simulation resumed');
+    console.log('Simulation resumed');
     this.emit('simulationResumed', {
       resumeIndex: this.currentIndex,
       remainingMessages: this.data.messages.length - this.currentIndex
@@ -109,7 +109,7 @@ export class EventSimulator extends EventEmitter {
   private simulateNextMessage(): void {
     if (!this.isSimulating || !this.data || this.currentIndex >= this.data.messages.length) {
       if (this.currentIndex >= (this.data?.messages.length || 0)) {
-        console.log('✅ Simulation completed');
+        console.log('Simulation completed');
         this.emit('simulationCompleted', {
           totalProcessed: this.currentIndex,
           groupId: this.data?.id
@@ -130,7 +130,7 @@ export class EventSimulator extends EventEmitter {
     // Convert pineapple message to simulated event
     const simulatedEvent = this.convertToSimulatedEvent(pineappleMsg);
     
-    console.log(`📤 [${this.currentIndex + 1}/${this.data.messages.length}] Emitting message: "${simulatedEvent.content.substring(0, 50)}..."`);
+    console.log(`[${this.currentIndex + 1}/${this.data.messages.length}] Emitting message: "${simulatedEvent.content.substring(0, 50)}..."`);
     
     // Emit the message event
     this.emit('message', simulatedEvent);
@@ -179,6 +179,6 @@ export class EventSimulator extends EventEmitter {
 
   setSimulationSpeed(speed: number): void {
     this.simulationSpeed = Math.max(1, speed); // Minimum 1ms
-    console.log(`⚡ Simulation speed set to ${this.simulationSpeed}ms`);
+    console.log(`Simulation speed set to ${this.simulationSpeed}ms`);
   }
 } 

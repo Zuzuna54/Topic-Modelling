@@ -12,23 +12,23 @@
 👥 USERS:
   1. Alice Johnson
      Messages: 5
-     Style: quick
+     Style: delayed
      Active Convs: 0
   2. Bob Smith
      Messages: 6
-     Style: delayed
+     Style: quick
      Active Convs: 0
   3. Charlie Brown
      Messages: 3
-     Style: sporadic
+     Style: quick
      Active Convs: 0
   4. Diana Prince
      Messages: 2
-     Style: delayed
+     Style: quick
      Active Convs: 0
   5. Eve Davis
      Messages: 2
-     Style: sporadic
+     Style: quick
      Active Convs: 0
   6. Frank Miller
      Messages: 4
@@ -36,7 +36,7 @@
      Active Convs: 0
   7. Grace Chen
      Messages: 3
-     Style: sporadic
+     Style: delayed
      Active Convs: 0
   8. Henry Wilson
      Messages: 3
@@ -48,7 +48,7 @@
      Active Convs: 0
   10. Jack Thompson
      Messages: 3
-     Style: delayed
+     Style: sporadic
      Active Convs: 0
   11. Kate Anderson
      Messages: 2
@@ -56,7 +56,7 @@
      Active Convs: 0
   12. Leo Martinez
      Messages: 4
-     Style: delayed
+     Style: quick
      Active Convs: 0
 
 🏷️ TOPICS:
@@ -144,63 +144,63 @@
      Active: true
 
 📝 RECENT MESSAGES:
-  [24] Charlie Brown: "Did anyone watch the new sci-fi movie last night?"
-       Topic: Entertainment | Sentiment: negative
-  [21] Leo Martinez: "Amazing! I went there last year. Tokyo is incredib..."
+  [5] Bob Smith: "Who's coming to the party this weekend?"
+       Topic: Social Events | Sentiment: negative
+  [22] Alice Johnson: "Any recommendations for must-visit places?"
+       Topic: Travel & Adventure | Sentiment: positive
+  [35] Frank Miller: "Start with just 5 minutes a day. Consistency matte..."
+       Topic: Health & Wellness | Sentiment: neutral
+  [20] Kate Anderson: "Planning a trip to Japan next month!"
        Topic: Travel & Adventure | Sentiment: negative
-  [19] Jack Thompson: "That sounds delicious! I'll try it this weekend"
-       Topic: Food & Cooking | Sentiment: negative
-  [7] Diana Prince: "Should we bring anything specific?"
-       Topic: Social Events | Sentiment: positive
-  [18] Ivy Rodriguez: "It's carbonara with a twist - added mushrooms"
-       Topic: Food & Cooking | Sentiment: neutral
+  [26] Ivy Rodriguez: "I'm planning to see it this weekend"
+       Topic: Entertainment | Sentiment: positive
 
 🤝 RELATIONSHIPS:
   Alice Johnson ↔ Bob Smith
      Type: friendly | Strength: 0.80
-     Interactions: 59
+     Interactions: 48
   Bob Smith ↔ Charlie Brown
      Type: professional | Strength: 0.60
-     Interactions: 39
+     Interactions: 30
   Alice Johnson ↔ Eve Davis
      Type: professional | Strength: 0.70
-     Interactions: 32
+     Interactions: 17
   Charlie Brown ↔ Diana Prince
      Type: friendly | Strength: 0.75
-     Interactions: 43
+     Interactions: 22
   Frank Miller ↔ Grace Chen
      Type: friendly | Strength: 0.85
-     Interactions: 49
+     Interactions: 20
   Grace Chen ↔ Henry Wilson
      Type: professional | Strength: 0.65
-     Interactions: 56
+     Interactions: 48
   Ivy Rodriguez ↔ Jack Thompson
      Type: friendly | Strength: 0.90
-     Interactions: 18
+     Interactions: 36
   Kate Anderson ↔ Leo Martinez
      Type: professional | Strength: 0.70
-     Interactions: 35
+     Interactions: 13
   Alice Johnson ↔ Kate Anderson
      Type: friendly | Strength: 0.80
-     Interactions: 14
+     Interactions: 25
   Diana Prince ↔ Henry Wilson
      Type: professional | Strength: 0.60
-     Interactions: 44
+     Interactions: 12
   Eve Davis ↔ Frank Miller
      Type: neutral | Strength: 0.50
-     Interactions: 44
+     Interactions: 21
   Ivy Rodriguez ↔ Grace Chen
      Type: friendly | Strength: 0.70
-     Interactions: 21
+     Interactions: 18
   Bob Smith ↔ Leo Martinez
      Type: professional | Strength: 0.65
-     Interactions: 45
+     Interactions: 10
   Jack Thompson ↔ Leo Martinez
      Type: friendly | Strength: 0.80
-     Interactions: 56
+     Interactions: 38
   Charlie Brown ↔ Grace Chen
      Type: neutral | Strength: 0.55
-     Interactions: 34
+     Interactions: 10
   Henry Wilson ↔ Jack Thompson
      Type: professional | Strength: 0.70
-     Interactions: 38
+     Interactions: 40

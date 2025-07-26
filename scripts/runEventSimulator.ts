@@ -1,7 +1,7 @@
 import { EventSimulator } from '../simulators/eventSimulator';
 
 async function runEventSimulator() {
-  console.log('🎪 Running Event Simulator - Processing Real Pineapple Club Messages\n');
+  console.log('Running Event Simulator - Processing Real Pineapple Club Messages\n');
   
   const simulator = new EventSimulator();
   let messageCount = 0;
@@ -9,11 +9,11 @@ async function runEventSimulator() {
 
   // Set up event listeners
   simulator.on('simulationStarted', (data) => {
-    console.log('🎬 Event Simulator Started:');
-    console.log(`   📊 Total Messages: ${data.totalMessages.toLocaleString()}`);
-    console.log(`   🏷️  Group: ${data.groupName}`);
-    console.log(`   🆔 Group ID: ${data.groupId}`);
-    console.log('\n📨 Live Message Stream:');
+    console.log('Event Simulator Started:');
+    console.log(`   Total Messages: ${data.totalMessages.toLocaleString()}`);
+    console.log(`   Group: ${data.groupName}`);
+    console.log(`   Group ID: ${data.groupId}`);
+    console.log('\nLive Message Stream:');
     console.log('─'.repeat(80));
   });
 
@@ -38,11 +38,11 @@ async function runEventSimulator() {
       content = '[empty message]';
     }
     
-    console.log(`📨 [${messageCount.toString().padStart(4, ' ')}] ${timestamp} | User ${event.userId.toString().padStart(10, ' ')} | "${content}"`);
+    console.log(`[${messageCount.toString().padStart(4, ' ')}] ${timestamp} | User ${event.userId.toString().padStart(10, ' ')} | "${content}"`);
     
     // Show reply information
     if (event.replyToMessageId) {
-      console.log(`     ↪️ Replying to message ID: ${event.replyToMessageId}`);
+      console.log(`      Replying to message ID: ${event.replyToMessageId}`);
     }
     
     // Show stats every 25 messages
@@ -51,37 +51,37 @@ async function runEventSimulator() {
       const avgMessagesPerUser = (messageCount / uniqueUsers).toFixed(1);
       const progress = simulator.getSimulationStatus().progress.toFixed(2);
       
-      console.log(`\n📊 Stats Update: ${messageCount} messages | ${uniqueUsers} unique users | ${avgMessagesPerUser} avg/user | ${progress}% complete\n`);
+      console.log(`\nStats Update: ${messageCount} messages | ${uniqueUsers} unique users | ${avgMessagesPerUser} avg/user | ${progress}% complete\n`);
     }
   });
 
   simulator.on('simulationCompleted', (data) => {
     console.log('\n' + '═'.repeat(80));
-    console.log('✅ Simulation Completed!');
-    console.log(`📊 Final Statistics:`);
-    console.log(`   📨 Total Messages Processed: ${data.totalProcessed.toLocaleString()}`);
-    console.log(`   👥 Unique Users: ${userStats.size}`);
-    console.log(`   📈 Messages per User: ${(data.totalProcessed / userStats.size).toFixed(1)}`);
+    console.log('Simulation Completed!');
+    console.log(`Final Statistics:`);
+    console.log(`   Total Messages Processed: ${data.totalProcessed.toLocaleString()}`);
+    console.log(`   Unique Users: ${userStats.size}`);
+    console.log(`   Messages per User: ${(data.totalProcessed / userStats.size).toFixed(1)}`);
     
     // Show top 5 most active users
     const sortedUsers = Array.from(userStats.entries())
       .sort((a, b) => b[1] - a[1])
       .slice(0, 5);
     
-    console.log(`\n🏆 Top 5 Most Active Users:`);
+    console.log(`\nTop 5 Most Active Users:`);
     sortedUsers.forEach(([userId, count], index) => {
       console.log(`   ${index + 1}. User ${userId}: ${count} messages`);
     });
     
-    console.log('\n🎉 Event Simulator run completed successfully!');
+    console.log('\nEvent Simulator run completed successfully!');
   });
 
   try {
     // Load pineapple data
-    console.log('📁 Loading pineapple.json data...');
+    console.log('Loading pineapple.json data...');
     await simulator.loadPineappleData('./pineapple.json');
     
-    console.log('\n⚡ Starting simulation with 200ms intervals (5 messages per second)');
+    console.log('\nStarting simulation with 200ms intervals (5 messages per second)');
     console.log('Press Ctrl+C to stop the simulation\n');
     
     // Start simulation - 200ms = 5 messages per second (reasonable speed to follow)
@@ -90,18 +90,18 @@ async function runEventSimulator() {
     // Auto-stop after processing 100 messages for demo purposes
     // Remove this timeout if you want it to run indefinitely
     setTimeout(() => {
-      console.log('\n🛑 Auto-stopping demo after 100 messages...');
+      console.log('\nAuto-stopping demo after 100 messages...');
       simulator.stopSimulation();
     }, 20000); // 20 seconds should be enough for ~100 messages at 200ms intervals
 
   } catch (error) {
-    console.error('\n❌ Failed to run Event Simulator:', error);
+    console.error('\nFailed to run Event Simulator:', error);
   }
 }
 
 // Handle graceful shutdown
 process.on('SIGINT', () => {
-  console.log('\n\n⏹️ Stopping Event Simulator...');
+  console.log('\n\nStopping Event Simulator...');
   process.exit(0);
 });
 

@@ -9,23 +9,23 @@ export class RedisClient {
       this.client = createClient({ url });
       
       this.client.on('error', (err) => {
-        console.error('❌ Redis Client Error:', err);
+        console.error('Redis Client Error:', err);
         this.isConnected = false;
       });
 
       this.client.on('connect', () => {
-        console.log('🔴 Redis Client Connected');
+        console.log('Redis Client Connected');
         this.isConnected = true;
       });
 
       this.client.on('disconnect', () => {
-        console.log('🔴 Redis Client Disconnected');
+        console.log('Redis Client Disconnected');
         this.isConnected = false;
       });
 
       await this.client.connect();
     } catch (error) {
-      console.error('❌ Failed to connect to Redis:', error);
+      console.error('Failed to connect to Redis:', error);
       throw error;
     }
   }
@@ -35,8 +35,8 @@ export class RedisClient {
       await this.client.disconnect();
       this.client = null;
       this.isConnected = false;
-      console.log('🔴 Redis Client Disconnected');
-    }
+      console.log('Redis Client Disconnected');
+    }   
   }
 
   private ensureConnected(): void {

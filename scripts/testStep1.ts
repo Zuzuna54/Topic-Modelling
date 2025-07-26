@@ -146,24 +146,24 @@ function convertGraphToJSON(graph: InMemoryGraph) {
 }
 
 async function testStep1() {
-  console.log('🧪 Testing Step 1: Mock Tree Creation & Visualization');
+  console.log('Testing Step 1: Mock Tree Creation & Visualization');
   console.log('=' .repeat(60));
 
   try {
     // Sub-step 1.1 & 1.2: Create Mock Data Structures and Generate Mock Tree
-    console.log('\n📋 Sub-step 1.1 & 1.2: Creating Mock Tree with Sample Data');
+    console.log('\nSub-step 1.1 & 1.2: Creating Mock Tree with Sample Data');
     const mockGraph = MockTreeGenerator.generateMockTree(1);
     
-    console.log('✅ Mock tree generated successfully!');
-    console.log(`📊 Generated ${mockGraph.stats.totalMessages} messages, ${mockGraph.stats.totalUsers} users, ${mockGraph.stats.totalTopics} topics`);
+    console.log('Mock tree generated successfully!');
+    console.log(`Generated ${mockGraph.stats.totalMessages} messages, ${mockGraph.stats.totalUsers} users, ${mockGraph.stats.totalTopics} topics`);
 
     // Sub-step 1.3: Generate Text Visualization
-    console.log('\n📊 Sub-step 1.3a: Generating Text Visualization');
+    console.log('\nSub-step 1.3a: Generating Text Visualization');
     const textVisualization = TreeVisualizer.generateTextVisualization(mockGraph);
     console.log(textVisualization);
 
     // Sub-step 1.3: Generate Mermaid Diagram
-    console.log('\n🎨 Sub-step 1.3b: Generating Mermaid Diagram');
+    console.log('\nSub-step 1.3b: Generating Mermaid Diagram');
     const mermaidDiagram = TreeVisualizer.generateMermaidDiagram(mockGraph);
     console.log('Mermaid Diagram:');
     console.log('```mermaid');
@@ -171,7 +171,7 @@ async function testStep1() {
     console.log('```');
 
     // Write visualizations to files
-    console.log('\n💾 Writing visualizations to files...');
+    console.log('\nWriting visualizations to files...');
     
     // Create output directory if it doesn't exist
     const outputDir = './output';
@@ -182,12 +182,12 @@ async function testStep1() {
     // Write text visualization
     const textFilePath = `${outputDir}/social_graph_visualization.txt`;
     fs.writeFileSync(textFilePath, textVisualization);
-    console.log(`✅ Text visualization saved to: ${textFilePath}`);
+    console.log(`Text visualization saved to: ${textFilePath}`);
 
     // Write Mermaid diagram
     const mermaidFilePath = `${outputDir}/social_graph_diagram.mmd`;
     fs.writeFileSync(mermaidFilePath, mermaidDiagram);
-    console.log(`✅ Mermaid diagram saved to: ${mermaidFilePath}`);
+    console.log(`Mermaid diagram saved to: ${mermaidFilePath}`);
 
     // Write a complete Mermaid file with proper markdown formatting
     const mermaidMarkdownPath = `${outputDir}/social_graph_diagram.md`;
@@ -210,33 +210,33 @@ ${mermaidDiagram}
 ${new Date().toISOString()}
 `;
     fs.writeFileSync(mermaidMarkdownPath, mermaidMarkdown);
-    console.log(`✅ Mermaid markdown saved to: ${mermaidMarkdownPath}`);
+    console.log(`Mermaid markdown saved to: ${mermaidMarkdownPath}`);
 
     // Test data integrity
-    console.log('\n🔍 Testing Data Integrity:');
+    console.log('\nTesting Data Integrity:');
     
     // Check messages are properly linked to users
     let totalUserMessages = 0;
     mockGraph.users.forEach(user => {
       totalUserMessages += user.messageIds.size;
     });
-    console.log(`✅ User message links: ${totalUserMessages} total user-message connections`);
+    console.log(`User message links: ${totalUserMessages} total user-message connections`);
     
     // Check topics have proper message associations
     let totalTopicMessages = 0;
     mockGraph.topics.forEach(topic => {
       totalTopicMessages += topic.messageIds.size;
     });
-    console.log(`✅ Topic message links: ${totalTopicMessages} total topic-message connections`);
+    console.log(`Topic message links: ${totalTopicMessages} total topic-message connections`);
     
     // Check relationships
-    console.log(`✅ User relationships: ${mockGraph.userRelationships.size} relationships tracked`);
+    console.log(`User relationships: ${mockGraph.userRelationships.size} relationships tracked`);
     
     // Check conversation contexts
-    console.log(`✅ Context windows: ${mockGraph.conversationContexts.size} context windows created`);
+    console.log(`Context windows: ${mockGraph.conversationContexts.size} context windows created`);
 
     // Generate JSON tree structure and save to file + console
-    console.log('\n📋 Prettified JSON Tree Structure:');
+    console.log('\nPrettified JSON Tree Structure:');
     console.log('=' .repeat(60));
     const jsonTree = convertGraphToJSON(mockGraph);
     console.log(JSON.stringify(jsonTree, null, 2));
@@ -244,28 +244,28 @@ ${new Date().toISOString()}
     // Write JSON tree structure to file
     const jsonFilePath = `${outputDir}/social_graph_data.json`;
     fs.writeFileSync(jsonFilePath, JSON.stringify(jsonTree, null, 2));
-    console.log(`\n✅ JSON tree data saved to: ${jsonFilePath}`);
+    console.log(`\nJSON tree data saved to: ${jsonFilePath}`);
 
     console.log('\n🎉 Step 1 Implementation Complete!');
     console.log('All sub-steps working correctly:');
-    console.log('  ✅ 1.1: Mock Data Structures (TypeScript interfaces)');
-    console.log('  ✅ 1.2: Mock Tree Generator (realistic social graph)');
-    console.log('  ✅ 1.3: Tree Visualizer (text + Mermaid diagrams)');
+    console.log('  1.1: Mock Data Structures (TypeScript interfaces)');
+    console.log('  1.2: Mock Tree Generator (realistic social graph)');
+    console.log('  1.3: Tree Visualizer (text + Mermaid diagrams)');
     
-    console.log('\n📂 Output Files Created:');
-    console.log('  📄 ./output/social_graph_visualization.txt - Text visualization');
-    console.log('  🎨 ./output/social_graph_diagram.mmd - Mermaid diagram');
-    console.log('  📋 ./output/social_graph_diagram.md - Mermaid in markdown');
-    console.log('  🔧 ./output/social_graph_data.json - Complete JSON tree structure');
+    console.log('\nOutput Files Created:');
+    console.log('  ./output/social_graph_visualization.txt - Text visualization');
+    console.log('  ./output/social_graph_diagram.mmd - Mermaid diagram');
+    console.log('  ./output/social_graph_diagram.md - Mermaid in markdown');
+    console.log('  ./output/social_graph_data.json - Complete JSON tree structure');
     
-    console.log('\n💡 How to view the Mermaid diagram:');
+    console.log('\nHow to view the Mermaid diagram:');
     console.log('  1. Copy content from .mmd file');
     console.log('  2. Paste into: https://mermaid.live/');
     console.log('  3. Or use VS Code Mermaid Preview extension');
     console.log('  4. Or view the .md file in GitHub/any markdown viewer');
 
   } catch (error) {
-    console.error('\n❌ Step 1 test failed:', error);
+    console.error('\nStep 1 test failed:', error);
     throw error;
   }
 }

@@ -2,6 +2,13 @@ import { EventEmitter } from 'events';
 import { RedisClient } from '../redisClient/redisClient';
 import { SimulatedEvent } from '../simulators/eventSimulator';
 
+export interface BatchReadyEvent {
+  groupId: number;
+  messages: SimulatedEvent[];
+  batchSize: number;
+  timestamp: Date;
+}
+
 export interface MessagePayload {
   id: number;
   timestamp: number;
@@ -36,9 +43,9 @@ export class AccumulatorRaft extends EventEmitter {
   async initialize(redisUrl?: string): Promise<void> {
     try {
       await this.redisClient.connect(redisUrl);
-      console.log('✅ Accumulator Raft initialized');
+      console.log('Accumulator Raft initialized');
     } catch (error) {
-      console.error('❌ Failed to initialize Accumulator Raft:', error);
+      console.error('Failed to initialize Accumulator Raft:', error);
       throw error;
     }
   }
@@ -114,16 +121,26 @@ export class AccumulatorRaft extends EventEmitter {
           }
         }
       } else {
-        // Parse messages from JSON strings
-        const messages = batch.map((item: string) => JSON.parse(item) as MessagePayload);
-
-        console.log('🚀 Emitting MESSAGE_BATCH event...');
+        // Parse messages from JSON strings and convert back to SimulatedEvent format
+        const messagePayloads = batch.map((item: string) => JSON.parse(item) as MessagePayload);
         
-        const batchEvent: MessageBatchEvent = {
-          channelId: event.groupId,
-          messages,
-          organization_id: this.organizationId,
-          campaign_id: this.campaignId,
+        // Convert MessagePayload back to SimulatedEvent for ConciergeAgent
+        const simulatedEvents: SimulatedEvent[] = messagePayloads.map(payload => ({
+          id: payload.id,
+          content: payload.content,
+          userId: payload.fromUserId,
+          timestamp: new Date(payload.timestamp * 1000), // Convert back from Unix timestamp
+          replyToMessageId: payload.replyToMessageId || undefined,
+          groupId: event.groupId
+        }));
+
+        console.log('🚀 Emitting batchReady event...');
+        
+        const batchEvent: BatchReadyEvent = {
+          groupId: event.groupId,
+          messages: simulatedEvents,
+          batchSize: simulatedEvents.length,
+          timestamp: new Date()
         };
 
         this.emit('batchReady', batchEvent);
@@ -133,23 +150,23 @@ export class AccumulatorRaft extends EventEmitter {
 
   start(): void {
     if (this.isRunning) {
-      console.log('⚠️ Accumulator Raft is already running');
+      console.log('Accumulator Raft is already running');
       return;
     }
 
     this.isRunning = true;
-    console.log('▶️ Accumulator Raft started');
+    console.log('Accumulator Raft started');
     this.emit('started');
   }
 
   stop(): void {
     if (!this.isRunning) {
-      console.log('⚠️ Accumulator Raft is not running');
+      console.log('Accumulator Raft is not running');
       return;
     }
 
     this.isRunning = false;
-    console.log('⏹️ Accumulator Raft stopped');
+    console.log('Accumulator Raft stopped');
     this.emit('stopped');
   }
 
@@ -165,13 +182,13 @@ export class AccumulatorRaft extends EventEmitter {
     const batchKey = `${this.organizationId}:${this.campaignId}:${groupId}`;
     const redisKey = `nlp2:batch:telegram:${batchKey}`;
     await this.redisClient.del(redisKey);
-    console.log(`🗑️ Cleared queue ${redisKey}`);
+    console.log(`Cleared queue ${redisKey}`);
   }
 
   async shutdown(): Promise<void> {
     this.stop();
     await this.redisClient.disconnect();
-    console.log('🔌 Accumulator Raft disconnected from Redis');
+    console.log('Accumulator Raft disconnected from Redis');
   }
 
   getStatus(): { isRunning: boolean; batchSize: number; organizationId: number; campaignId: string } {

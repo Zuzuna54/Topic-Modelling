@@ -5,15 +5,15 @@ async function testEventSimulator() {
 
   // Set up event listeners
   simulator.on('simulationStarted', (data) => {
-    console.log('🎬 Simulation Started:', data);
+    console.log('Simulation Started:', data);
   });
 
   simulator.on('message', (event) => {
-    console.log(`📨 Message ${event.id}: [User ${event.userId}] "${event.content}"`);
+    console.log(`Message ${event.id}: [User ${event.userId}] "${event.content}"`);
   });
 
   simulator.on('simulationCompleted', (data) => {
-    console.log('✅ Simulation Completed:', data);
+    console.log('Simulation Completed:', data);
   });
 
   try {
@@ -29,7 +29,7 @@ async function testEventSimulator() {
     }, 10000);
 
   } catch (error) {
-    console.error('❌ Test failed:', error);
+    console.error('Test failed:', error);
   }
 }
 
