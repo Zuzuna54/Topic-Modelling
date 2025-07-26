@@ -153,11 +153,19 @@ Pineapple.json → Event Simulator → Accumulator Raft → Batch Dump → Conci
   - **Evolution Tracking**: How relationships change over time
   - **Context Window Management**: Maintains sliding window of recent interactions for sentiment context
 
-##### Toxicity Analysis Agent
+##### Enhanced Toxicity Analysis Agent
 - **File**: `Agents/toxicityAgent.ts`
-- **Purpose**: Detect and score message toxicity
-- **Input**: Array of processed text strings
-- **Output**: Array of toxicity scores
+- **Purpose**: Context-aware toxicity detection using relationship and conversation context
+- **Input**: Messages with user relationships, conversation context windows, and escalation history
+- **Output**: Contextual toxicity analysis with confidence scores and relationship influence
+- **Features**:
+  - **Base Toxicity Detection**: Traditional harmful content classification
+  - **Contextual Enhancement**: Adjusts toxicity scoring based on conversation context and relationship dynamics
+  - **Relationship Awareness**: Considers user relationship type (friendly banter vs. genuine hostility)
+  - **Escalation Detection**: Tracks conversation escalation patterns and emotional trajectories
+  - **Historical Context**: Analyzes previous interaction patterns between users for context
+  - **Confidence Scoring**: Provides confidence levels for toxicity predictions with context explanation
+  - **Relationship Impact Assessment**: Determines if toxic content strengthens/weakens relationships
 
 ##### LLM Agent
 - **File**: `Agents/llmAgent.ts`
@@ -402,6 +410,49 @@ interface RelationshipUpdate {
 }
 ```
 
+#### Enhanced Contextual Toxicity Analysis Agent Interface
+```typescript
+interface ContextualToxicityAgent {
+  async analyzeWithContext(
+    messages: string[],
+    contexts: MessageContext[]
+  ): Promise<ContextualToxicityResult[]>;
+  
+  async detectEscalationPatterns(
+    conversationHistory: ConversationContextWindow
+  ): Promise<EscalationAnalysis>;
+}
+
+interface ContextualToxicityResult {
+  messageId: number;
+  baseToxicity: number; // 0-1 raw toxicity score
+  contextualToxicity: number; // 0-1 context-adjusted score
+  toxicityCategories: string[]; // ['hate_speech', 'harassment', 'threat', 'cyberbullying']
+  confidenceScore: number; // 0-1
+  relationshipImpact: 'escalating' | 'de-escalating' | 'neutral' | 'playful_banter';
+  contextInfluence: {
+    influencingMessageIds: number[];
+    escalationTriggers: string[]; // What caused escalation
+    relationshipContext: 'friendly_banter' | 'heated_argument' | 'genuine_hostility' | 'professional_disagreement';
+    conversationTone: 'deteriorating' | 'stable' | 'improving';
+  };
+  recommendedAction: 'no_action' | 'warn_users' | 'moderate_content' | 'escalate_to_admin';
+}
+
+interface EscalationAnalysis {
+  userPair: string;
+  escalationLevel: number; // 0-1 scale
+  escalationPattern: 'increasing' | 'decreasing' | 'stable' | 'cyclical';
+  triggerEvents: {
+    messageId: number;
+    escalationJump: number;
+    context: string;
+  }[];
+  relationshipRisk: 'low' | 'medium' | 'high' | 'severe';
+  interventionRecommended: boolean;
+}
+```
+
 ### Streaming Output
 - Async generator pattern yields processed messages
 - Sequential processing for noise/spam filtering
@@ -640,10 +691,10 @@ interface InMemoryGraph {
 7. **Topic Assignment**: Assign to existing topic or create new canonical topic using LLM
 8. **Enhanced Parallel Processing**: Process with context awareness
    ```typescript
-   const [embeddings, contextualSentiment, toxicityResults, relationshipUpdates] = await Promise.all([
+   const [embeddings, contextualSentiment, contextualToxicity, relationshipUpdates] = await Promise.all([
      context.agents.embedding.generate(processedTexts),
      context.agents.sentiment.analyzeWithContext(processedTexts, userRelationships, conversationContexts),
-     context.agents.toxicity.analyze(processedTexts),
+     context.agents.toxicity.analyzeWithContext(processedTexts, userRelationships, conversationContexts),
      context.agents.relationship.updateRelationships(messageInteractions)
    ]);
    ```

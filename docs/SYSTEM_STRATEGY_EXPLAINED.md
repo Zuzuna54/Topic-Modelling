@@ -58,7 +58,7 @@ Our system follows advanced **agentic AI principles** - it's a sophisticated mul
 - **The Meaning Maker**: Turns words into mathematical representations (embeddings) that capture semantic meaning
 - **The Topic Expert**: Compares new messages against known topics (with 70% similarity threshold) and creates new ones when needed
 - **The Relationship Analyst**: Tracks who talks to whom, how their relationships evolve, and maintains conversation context windows
-- **The Social Analyst**: Detects toxicity and inappropriate content
+- **The Context-Aware Toxicity Analyst**: Detects harmful content using relationship context and conversation history to distinguish between genuine toxicity and friendly banter
 
 **The Data Access Controllers (Rafts)**:
 - **Accumulator Raft**: Only component with Redis access, handles message batching
@@ -105,8 +105,8 @@ This isn't just about performance - it's about creating a **bulletproof system**
 For each clean message, we run multiple analyses **simultaneously**:
 
 - **Semantic Analysis**: Convert the text into a mathematical "fingerprint" (embedding vector) that captures its meaning
-- **Sentiment Analysis**: Is this message happy, sad, angry, or neutral?
-- **Toxicity Detection**: Is this message harmful or inappropriate?
+- **Contextual Sentiment Analysis**: Determine emotional tone considering user relationships and conversation history
+- **Contextual Toxicity Detection**: Detect harmful content by analyzing relationship dynamics, escalation patterns, and conversation context to distinguish genuine toxicity from friendly banter
 - **Topic Matching**: Does this message relate to topics we already know about?
 
 This all happens in parallel - like having multiple experts examine the same evidence simultaneously.
@@ -249,6 +249,14 @@ Here's how we create a comprehensive conversation understanding that includes hu
 - This context helps us understand if "thanks for nothing" is genuine frustration or playful sarcasm between friends
 - Emotional trajectories show us how conversations evolve - from neutral to heated, or from conflict to resolution
 
+#### 7. Enhanced Contextual Toxicity Intelligence
+- **Relationship-Aware Toxicity Detection**: The same aggressive language has completely different meanings between close friends vs. strangers
+- **Escalation Pattern Recognition**: Track how conversations deteriorate over time, identifying when playful teasing becomes genuine hostility
+- **Context-Dependent Severity**: "You're an idiot" between gaming buddies vs. in a professional argument requires different responses
+- **Historical Interaction Analysis**: Consider previous conflict resolution patterns between users to predict relationship impact
+- **Intervention Timing**: Detect optimal moments for moderation before conflicts escalate beyond repair
+- **Banter vs. Bullying**: Distinguish between friendly ribbing and systematic harassment using relationship strength and interaction patterns
+
 ### The Enhanced Social Graph Advantage
 
 By combining all these signals with deep relationship understanding, we create an unprecedented understanding of:
@@ -260,6 +268,8 @@ By combining all these signals with deep relationship understanding, we create a
 - **How community dynamics** shift and change as relationships form, strengthen, weaken, or fracture
 - **Context-dependent communication** where the same message can have opposite meanings based on relationship history
 - **Predictive relationship intelligence** that can forecast conflict, friendship formation, or community changes
+- **Intelligent toxicity moderation** that distinguishes harmful content from friendly banter using relationship context
+- **Escalation prevention** through early detection of conversation deterioration patterns before conflicts become irreparable
 
 ## The Business Value: Why This Matters
 
@@ -268,6 +278,8 @@ By combining all these signals with deep relationship understanding, we create a
 - **Influence network mapping** to identify key opinion leaders
 - **Topic trending analysis** to predict what will become popular
 - **Community health monitoring** to detect problems early
+- **Context-aware content moderation** that reduces false positives by understanding relationship dynamics
+- **Escalation prediction** to intervene before conflicts damage community relationships
 
 ### For Decision Making
 - **Conversation quality metrics** to understand engagement
@@ -314,6 +326,7 @@ These diagrams follow **Level 5+ Agentic AI best practices** with meta-agent coo
 12. **Multi-Signal Intelligence**: Combining semantic, temporal, and relationship signals
 13. **Living Social Graph**: Real-time evolution of human relationships and community dynamics
 14. **Predictive Relationship Intelligence**: Forecasting social changes before they happen
+15. **Contextual Toxicity Intelligence**: Revolutionary approach distinguishing harmful content from friendly banter using relationship context and escalation patterns
 
 ## The Future Vision: An Evolving Intelligence
 
@@ -325,6 +338,7 @@ This system isn't just a tool - it's a foundation for understanding human social
 - **Provide insights** that humans might miss about social dynamics and emotional context
 - **Understand context-dependent communication** where the same words mean different things based on relationships
 - **Predict relationship changes** before conflicts escalate or friendships form
+- **Revolutionize content moderation** by understanding when aggressive language is harmful vs. playful, reducing false positives and improving community management
 
 By combining multiple signals (semantic, social, temporal, relational, and contextual), we create a much richer understanding than any single approach could provide.
 

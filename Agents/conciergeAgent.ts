@@ -51,18 +51,18 @@ export class ConciergeAgent extends EventEmitter {
     this.spamAgent = new MockSpamAgent();
     this.emojiAgent = new MockEmojiAgent();
     
-    console.log('🎭 Concierge Agent initialized');
+    console.log('Concierge Agent initialized');
   }
 
   async initialize(groupId: number = 1): Promise<void> {
     try {
-      console.log(`🎭 Initializing Concierge Agent for group ${groupId}`);
+      console.log(`Initializing Concierge Agent for group ${groupId}`);
       
       // In Phase 1, we'll use mock data
       // In later phases, this would load from database
       this.graph = MockTreeGenerator.generateMockTree(groupId);
       
-      console.log(`✅ Concierge Agent ready - loaded graph with ${this.graph.stats.totalMessages} messages`);
+      console.log(`Concierge Agent ready - loaded graph with ${this.graph.stats.totalMessages} messages`);
       
       this.emit('agentReady', {
         groupId: this.graph.groupId,
@@ -70,18 +70,18 @@ export class ConciergeAgent extends EventEmitter {
       });
       
     } catch (error) {
-      console.error('❌ Failed to initialize Concierge Agent:', error);
+      console.error('Failed to initialize Concierge Agent:', error);
       throw error;
     }
   }
 
   async processBatch(batchEvent: BatchReadyEvent): Promise<void> {
-    console.log(`🎭 Concierge Agent: Received batch with ${batchEvent.messages.length} messages`);
+    console.log(`Concierge Agent: Received batch with ${batchEvent.messages.length} messages`);
     
     // Add to queue if currently processing
     if (this.isProcessing) {
       this.processingQueue.push(batchEvent);
-      console.log(`📥 Batch queued (queue size: ${this.processingQueue.length})`);
+      console.log(`Batch queued (queue size: ${this.processingQueue.length})`);
       return;
     }
 
@@ -97,7 +97,7 @@ export class ConciergeAgent extends EventEmitter {
       }
       
     } catch (error) {
-      console.error('❌ Failed to process batch:', error);
+      console.error('Failed to process batch:', error);
       this.emit('processingError', error);
     } finally {
       this.isProcessing = false;
@@ -106,56 +106,56 @@ export class ConciergeAgent extends EventEmitter {
 
   private async processMessageBatch(batchEvent: BatchReadyEvent): Promise<void> {
     const { messages } = batchEvent;
-    console.log(`🔄 Processing batch of ${messages.length} messages`);
+    console.log(`Processing batch of ${messages.length} messages`);
 
     // Step 1: Input Validation & Pre-filtering
-    console.log('📋 Step 1: Input Validation & Pre-filtering');
+    console.log('Step 1: Input Validation & Pre-filtering');
     const validatedMessages = this.validateAndFilter(messages);
-    console.log(`✅ ${validatedMessages.length}/${messages.length} messages passed validation`);
+    console.log(`${validatedMessages.length}/${messages.length} messages passed validation`);
 
     if (validatedMessages.length === 0) {
-      console.log('⚠️ No valid messages to process');
+      console.log('No valid messages to process');
       return;
     }
 
     // Step 2: Spam Detection (Sequential)
-    console.log('🚫 Step 2: Spam Detection');
+    console.log('Step 2: Spam Detection');
     const spamResults = await this.spamAgent.detect(validatedMessages.map(m => m.content));
     const cleanMessages = validatedMessages.filter((_, index) => !spamResults[index].isSpam);
-    console.log(`✅ ${cleanMessages.length}/${validatedMessages.length} messages passed spam filter`);
+    console.log(`${cleanMessages.length}/${validatedMessages.length} messages passed spam filter`);
 
     if (cleanMessages.length === 0) {
-      console.log('⚠️ All messages filtered as spam');
+      console.log('All messages filtered as spam');
       return;
     }
 
     // Step 3: Emoji Processing (Sequential)
-    console.log('😀 Step 3: Emoji Processing');
+    console.log('Step 3: Emoji Processing');
     const processedTexts = await this.emojiAgent.unemojify(cleanMessages.map(m => m.content));
-    console.log(`✅ Processed emojis for ${processedTexts.length} messages`);
+    console.log(`Processed emojis for ${processedTexts.length} messages`);
 
     // Step 4: User Management & Context Retrieval
-    console.log('👥 Step 4: User Management & Context Retrieval');
+    console.log('Step 4: User Management & Context Retrieval');
     const messageContexts = this.getMessageContexts(cleanMessages);
-    console.log(`✅ Retrieved context for ${messageContexts.length} messages`);
+    console.log(`Retrieved context for ${messageContexts.length} messages`);
 
     // Step 5: Topic Determination (In-Memory)
-    console.log('🏷️ Step 5: Topic Determination');
+    console.log('Step 5: Topic Determination');
     const topicResults = await this.topicAgent.assignTopics(processedTexts);
-    console.log(`✅ Assigned topics for ${topicResults.length} messages`);
+    console.log(`Assigned topics for ${topicResults.length} messages`);
 
     // Step 6: Parallel Agent Processing
-    console.log('⚡ Step 6: Parallel Agent Processing');
+    console.log('Step 6: Parallel Agent Processing');
     const [embeddings, sentimentResults, toxicityResults, relationshipUpdates] = await Promise.all([
       this.embeddingAgent.generate(processedTexts),
       this.sentimentAgent.analyzeWithContext(processedTexts, messageContexts),
       this.toxicityAgent.analyze(processedTexts),
       this.relationshipAgent.updateRelationships(messageContexts)
     ]);
-    console.log('✅ Parallel processing completed');
+    console.log('Parallel processing completed');
 
     // Step 7: Graph Updates
-    console.log('📊 Step 7: Updating In-Memory Graph');
+    console.log('Step 7: Updating In-Memory Graph');
     await this.updateGraph(cleanMessages, {
       embeddings,
       sentimentResults,
@@ -163,10 +163,10 @@ export class ConciergeAgent extends EventEmitter {
       topicResults,
       relationshipUpdates
     });
-    console.log('✅ Graph updated successfully');
+    console.log('Graph updated successfully');
 
     // Step 8: Emit Processing Complete Event
-    console.log('📤 Step 8: Emitting processing complete event');
+    console.log('Step 8: Emitting processing complete event');
     this.emit('batchProcessed', {
       batchId: `${batchEvent.groupId}_${Date.now()}`,
       processedCount: cleanMessages.length,
@@ -175,7 +175,7 @@ export class ConciergeAgent extends EventEmitter {
       timestamp: new Date()
     });
 
-    console.log(`✅ Batch processing completed - Graph now has ${this.graph.stats.totalMessages} total messages`);
+    console.log(`Batch processing completed - Graph now has ${this.graph.stats.totalMessages} total messages`);
   }
 
   private validateAndFilter(messages: SimulatedEvent[]): SimulatedEvent[] {
@@ -302,7 +302,7 @@ export class ConciergeAgent extends EventEmitter {
           }
         };
         this.graph.users.set(message.userId, user);
-        console.log(`👤 Created new user: User${message.userId} (ID: ${message.userId})`);
+        console.log(`Created new user: User${message.userId} (ID: ${message.userId})`);
       }
       
       // Update user data
@@ -345,7 +345,7 @@ export class ConciergeAgent extends EventEmitter {
     this.graph.stats.totalUsers = this.graph.users.size;
     this.graph.stats.lastProcessedTime = new Date();
 
-    console.log(`📊 Graph updated: ${this.graph.stats.totalMessages} total messages, ${this.graph.stats.totalUsers} total users`);
+    console.log(`Graph updated: ${this.graph.stats.totalMessages} total messages, ${this.graph.stats.totalUsers} total users`);
   }
 
   private determineConversationId(message: SimulatedEvent): string {

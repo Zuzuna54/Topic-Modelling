@@ -14,7 +14,7 @@ export class MockSentimentAgent {
     messages: string[], 
     contexts: MessageContext[]
   ): Promise<ContextualSentimentResult[]> {
-    console.log(`😊 MockSentimentAgent: Analyzing ${messages.length} messages with context`);
+    console.log(`MockSentimentAgent: Analyzing ${messages.length} messages with context`);
     
     return messages.map((message, index) => {
       const context = contexts[index];
@@ -61,7 +61,7 @@ export class MockSentimentAgent {
 
 export class MockEmbeddingAgent {
   async generate(messages: string[]): Promise<EmbeddingResult[]> {
-    console.log(`📊 MockEmbeddingAgent: Generating embeddings for ${messages.length} messages`);
+    console.log(`MockEmbeddingAgent: Generating embeddings for ${messages.length} messages`);
     
     return messages.map((message, index) => ({
       messageId: index + 1, // Will be updated by concierge with real message ID
@@ -73,7 +73,7 @@ export class MockEmbeddingAgent {
 
 export class MockToxicityAgent {
   async analyze(messages: string[]): Promise<ToxicityResult[]> {
-    console.log(`☠️ MockToxicityAgent: Analyzing toxicity for ${messages.length} messages`);
+    console.log(`MockToxicityAgent: Analyzing toxicity for ${messages.length} messages`);
     
     return messages.map((message, index) => {
       // Mock toxicity detection
@@ -102,7 +102,7 @@ export class MockTopicAgent {
   ];
 
   async assignTopics(messages: string[]): Promise<TopicResult[]> {
-    console.log(`🏷️ MockTopicAgent: Assigning topics for ${messages.length} messages`);
+    console.log(`MockTopicAgent: Assigning topics for ${messages.length} messages`);
     
     return messages.map((message, index) => {
       const lowerMessage = message.toLowerCase();
@@ -139,7 +139,7 @@ export class MockTopicAgent {
 
 export class MockRelationshipAgent {
   async updateRelationships(contexts: MessageContext[]): Promise<RelationshipUpdate[]> {
-    console.log(`🤝 MockRelationshipAgent: Updating relationships for ${contexts.length} message contexts`);
+    console.log(`MockRelationshipAgent: Updating relationships for ${contexts.length} message contexts`);
     
     // Group contexts by user pairs
     const userPairs = new Map<string, MessageContext[]>();
@@ -181,7 +181,7 @@ export class MockRelationshipAgent {
 
 export class MockSpamAgent {
   async detect(messages: string[]): Promise<SpamResult[]> {
-    console.log(`🚫 MockSpamAgent: Detecting spam in ${messages.length} messages`);
+    console.log(`MockSpamAgent: Detecting spam in ${messages.length} messages`);
     
     return messages.map((message, index) => {
       // Mock spam detection
@@ -223,7 +223,7 @@ export class MockEmojiAgent {
   };
 
   async unemojify(messages: string[]): Promise<string[]> {
-    console.log(`😀 MockEmojiAgent: Converting emojis for ${messages.length} messages`);
+    console.log(`MockEmojiAgent: Converting emojis for ${messages.length} messages`);
     
     return messages.map(message => {
       let converted = message;
