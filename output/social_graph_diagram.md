@@ -1,0 +1,112 @@
+# Social Graph Visualization
+
+## Network Diagram
+
+```mermaid
+graph TB
+  subgraph Users["👥 Users"]
+    U1["⭐ Alice Johnson<br/>📝 5 msgs"]
+    U2["🌟 Bob Smith<br/>📝 6 msgs"]
+    U3["⭐ Charlie Brown<br/>📝 3 msgs"]
+    U4["👤 Diana Prince<br/>📝 2 msgs"]
+    U5["👤 Eve Davis<br/>📝 2 msgs"]
+    U6["⭐ Frank Miller<br/>📝 4 msgs"]
+    U7["⭐ Grace Chen<br/>📝 3 msgs"]
+    U8["⭐ Henry Wilson<br/>📝 3 msgs"]
+    U9["⭐ Ivy Rodriguez<br/>📝 3 msgs"]
+    U10["⭐ Jack Thompson<br/>📝 3 msgs"]
+    U11["👤 Kate Anderson<br/>📝 2 msgs"]
+    U12["⭐ Leo Martinez<br/>📝 4 msgs"]
+  end
+
+  subgraph Topics["🏷️ Topics"]
+    T1["Technology Discussion<br/>📊 4 msgs, 2 users"]
+    T2["Social Events<br/>📊 4 msgs, 3 users"]
+    T3["Work Projects<br/>📊 3 msgs, 2 users"]
+    T4["Personal Life<br/>📊 4 msgs, 3 users"]
+    T5["Sports & Fitness<br/>📊 4 msgs, 3 users"]
+    T6["Food & Cooking<br/>📊 5 msgs, 3 users"]
+    T7["Travel & Adventure<br/>📊 4 msgs, 3 users"]
+    T8["Entertainment<br/>📊 4 msgs, 3 users"]
+    T9["Learning & Education<br/>📊 4 msgs, 4 users"]
+    T10["Health & Wellness<br/>📊 4 msgs, 3 users"]
+  end
+
+  %% Strong Relationships
+  U1 ===>|"💙 0.80"| U2
+  U3 ===>|"💙 0.75"| U4
+  U6 ===>|"💙 0.85"| U7
+  U9 ===>|"💙 0.90"| U10
+  U1 ===>|"💙 0.80"| U11
+  U10 ===>|"💙 0.80"| U12
+
+  %% Topic Participation (Active Users Only)
+  U1 -.->|"2 msgs"| T1
+  U2 -.->|"2 msgs"| T1
+  U2 -.->|"2 msgs"| T2
+  U3 -.-> T2
+  U4 -.-> T2
+  U1 -.->|"2 msgs"| T3
+  U5 -.-> T3
+  U6 -.->|"2 msgs"| T5
+  U7 -.-> T5
+  U8 -.-> T5
+  U9 -.->|"2 msgs"| T6
+  U10 -.->|"2 msgs"| T6
+  U8 -.-> T6
+  U11 -.-> T7
+  U12 -.->|"2 msgs"| T7
+  U1 -.-> T7
+  U3 -.->|"2 msgs"| T8
+  U7 -.-> T8
+  U9 -.-> T8
+  U4 -.-> T9
+  U8 -.-> T9
+  U10 -.-> T9
+  U12 -.-> T9
+  U5 -.-> T10
+  U6 -.->|"2 msgs"| T10
+  U11 -.-> T10
+  U2 -.->|"2 msgs"| T4
+  U7 -.-> T4
+  U12 -.-> T4
+
+  %% Styling
+  classDef userStyle fill:#e3f2fd,stroke:#1976d2,stroke-width:2px,color:#000
+  classDef activeUserStyle fill:#bbdefb,stroke:#0d47a1,stroke-width:3px,color:#000
+  classDef topicStyle fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px,color:#000
+  classDef activeTopicStyle fill:#e1bee7,stroke:#4a148c,stroke-width:3px,color:#000
+  class U1 activeUserStyle
+  class U2 activeUserStyle
+  class U3 activeUserStyle
+  class U4 userStyle
+  class U5 userStyle
+  class U6 activeUserStyle
+  class U7 activeUserStyle
+  class U8 activeUserStyle
+  class U9 activeUserStyle
+  class U10 activeUserStyle
+  class U11 userStyle
+  class U12 activeUserStyle
+  class T1 activeTopicStyle
+  class T2 activeTopicStyle
+  class T3 activeTopicStyle
+  class T4 activeTopicStyle
+  class T5 activeTopicStyle
+  class T6 activeTopicStyle
+  class T7 activeTopicStyle
+  class T8 activeTopicStyle
+  class T9 activeTopicStyle
+  class T10 activeTopicStyle
+
+```
+
+## Statistics
+- **Users**: 12
+- **Messages**: 40
+- **Topics**: 10
+- **Conversations**: 10
+- **Relationships**: 16
+
+## Generated at
+2025-07-26T15:51:56.841Z

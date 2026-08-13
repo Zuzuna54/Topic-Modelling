@@ -1,0 +1,101 @@
+graph TB
+    %% External Data Source
+    PJ[("📁 chat-export.json<br/>Data Source")]
+    
+    %% Infrastructure Layer
+    subgraph Infrastructure ["🏗️ Infrastructure Layer"]
+        Redis[("🔴 Redis<br/>Event Accumulation")]
+        DB[("🐘 PostgreSQL<br/>Versioned Trees")]
+    end
+    
+    %% Raft Layer (Data Access Controllers)
+    subgraph RaftLayer ["⚡ Raft Layer - Data Access Controllers"]
+        AR["🌊 Accumulator Raft<br/>📝 Stateless<br/>✅ Redis Access<br/>❌ DB Access"]
+        SR["💾 Storage Raft<br/>📝 Stateless<br/>❌ Redis Access<br/>✅ DB Access"]
+    end
+    
+    %% Orchestration Layer
+    subgraph OrchestrationLayer ["🎯 Orchestration Layer"]
+        CA["🎭 Concierge Agent<br/>🧠 Stateful (In-Memory)<br/>❌ Redis Access<br/>❌ DB Access*<br/>📊 In-Memory Social Graph"]
+    end
+    
+    %% Stateless Processing Agents
+    subgraph AgentLayer ["🤖 Stateless Processing Agents"]
+        direction TB
+        SA["😊 Sentiment Agent<br/>📝 Stateless<br/>🔍 Context-Aware Analysis"]
+        RA["🤝 Relationship Agent<br/>📝 Stateless<br/>👥 User Dynamics"]
+        EA["📊 Embedding Agent<br/>📝 Stateless<br/>🔤 Semantic Vectors"]
+        SPA["🚫 Spam Agent<br/>📝 Stateless<br/>🛡️ Content Filter"]
+        EMA["😀 Emoji Agent<br/>📝 Stateless<br/>🔄 Text Conversion"]
+        TA["☠️ Toxicity Agent<br/>📝 Stateless<br/>⚠️ Harm Detection"]
+        LA["🧠 LLM Agent<br/>📝 Stateless<br/>📝 Topic Generation"]
+    end
+    
+    %% Background Processing
+    subgraph BackgroundLayer ["🔄 Background Processing"]
+        BG["🎯 Background Agent<br/>📝 Stateless<br/>❌ Redis Access<br/>❌ DB Access<br/>📤 Receives Tree via Events<br/>🤖 ChatGPT Optimization"]
+    end
+    
+    %% Simulation Layer
+    subgraph SimulationLayer ["🎬 Event Simulation"]
+        ES["🎪 Event Simulator<br/>📝 Stateless<br/>❌ Redis Access<br/>❌ DB Access"]
+    end
+    
+    %% Data Flow Connections
+    PJ -->|"📤 Stream Events"| ES
+    ES -->|"📨 Message Events"| AR
+    AR <-->|"📥📤 Accumulate/Threshold"| Redis
+    AR -->|"📦 Batch Dump (100 msgs)"| CA
+    
+    %% Concierge Orchestration
+    CA -->|"🔄 Parallel Processing"| SA
+    CA -->|"🔄 Parallel Processing"| RA
+    CA -->|"🔄 Parallel Processing"| EA
+    CA -->|"🔄 Sequential Processing"| SPA
+    CA -->|"🔄 Sequential Processing"| EMA
+    CA -->|"🔄 Parallel Processing"| TA
+    CA -->|"🔄 Topic Creation"| LA
+    
+    %% Agent Responses
+    SA -->|"😊 Contextual Sentiment"| CA
+    RA -->|"🤝 Relationship Updates"| CA
+    EA -->|"📊 Embeddings"| CA
+    SPA -->|"🚫 Spam Flags"| CA
+    EMA -->|"📝 Clean Text"| CA
+    TA -->|"☠️ Toxicity Scores"| CA
+    LA -->|"🏷️ Topic Assignments"| CA
+    
+    %% Enhanced Event-Driven Storage Flow
+    CA -->|"💾 Regular Messages"| SR
+    CA -->|"📤 Storage Event + Tree Payload"| SR
+    SR <-->|"📊 Persist Data & Trees"| DB
+    
+    %% Event-Driven Background Optimization
+    CA -->|"📤 Background Event + Tree Payload"| BG
+    BG -->|"📤 Optimized Storage Event + Tree"| SR
+    BG -.->|"🔔 Version Update Signal"| CA
+    CA <-->|"⚡ Load Latest Tree (Startup)"| DB
+    
+    %% Styling
+    classDef raftStyle fill:#e1f5fe,stroke:#01579b,stroke-width:3px,color:#000
+    classDef agentStyle fill:#f3e5f5,stroke:#4a148c,stroke-width:2px,color:#000
+    classDef orchestratorStyle fill:#fff3e0,stroke:#e65100,stroke-width:4px,color:#000
+    classDef infraStyle fill:#e8f5e8,stroke:#2e7d32,stroke-width:2px,color:#000
+    classDef dataStyle fill:#fce4ec,stroke:#c2185b,stroke-width:2px,color:#000
+    
+    class AR,SR raftStyle
+    class SA,RA,EA,SPA,EMA,TA,LA agentStyle
+    class CA orchestratorStyle
+    class Redis,DB infraStyle
+    class ES,BG dataStyle
+    
+    %% Access Control Legend
+    subgraph Legend ["🔐 Access Control Legend"]
+        L1["✅ Full Access"]
+        L2["❌ No Access"] 
+        L3["📝 Stateless"]
+        L4["🧠 Stateful"]
+        L5[" * DB access only at startup"]
+    end
+    
+    class L1,L2,L3,L4,L5 dataStyle

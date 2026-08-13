@@ -1,0 +1,12 @@
+node_modules/
+dist/
+*.log
+.DS_Store
+
+# Source data is NOT published. This pipeline was developed against a chat export
+# containing real people's messages, display names and user IDs — third-party
+# personal data that is not ours to redistribute. Point the simulator at your own
+# export, or use the mock generator in services/mockTreeGenerator.ts.
+chat-export.json
+pineapple.json
+output/social_graph_data.json
